@@ -19,17 +19,79 @@
       height: 150px;
       width: 100%;
     }
+
+    /* entire container, keeps perspective */
+
+    .flip-container {
+      perspective: 1000px;
+    }
+
+    /* flip the pane when hovered */
+
+    .flip-container:hover .flipper,
+    .flip-container.hover .flipper {
+      transform: rotateY(180deg);
+    }
+
+    .flip-container,
+    .front,
+    .back {
+      width: 200px;
+      height: 480px;
+    }
+
+    /* flip speed goes here */
+
+    .flipper {
+      transition: 0.6s;
+      transform-style: preserve-3d;
+
+      position: relative;
+    }
+
+    /* hide back of pane during swap */
+
+    .front,
+    .back {
+      backface-visibility: hidden;
+
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    /* front pane, placed above back */
+
+    .front {
+      z-index: 2;
+      /* for firefox 31 */
+      transform: rotateY(0deg);
+    }
+
+    /* back, initially hidden pane */
+
+    .back {
+      transform: rotateY(180deg);
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
     <div class="row align-items-center">
-      <h1>It's Schätz-Time!!!</h1> -
-      <h2 id="roomCode">0000</h2>
-      <div class="btn btn-warning" id="reset">Neu schätzen</div>
+      <h1>Schätz-App</h1> -
+      <h1 id="roomCode">----</h1>
+      <br />
     </div>
-    <div class="card-container"></div>
+    <div class="row align-items-center">
+      <div class="btn btn-warning" id="reset">Neu schätzen</div>
+      <div class="btn btn-success" id="show">Karten anzeigen</div>
+      <p id="counter">0</p> von
+      <p id="users">-1</p>
+    </div>
+  </div>
+  <div class="card-container"></div>
+
   </div>
   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
@@ -45,24 +107,44 @@
         socket.emit('room', roomCode);
       }
 
+      socket.on('user connected', function (msg) {
+        $('#users').html(parseInt($('#users').html()) + 1);
+      })
       socket.on('card draw', function (msg) {
+        $('#counter').html(parseInt($('#counter').html()) + 1);
         $('#card-deck-' + msg.card_value).append(
           '<div class="col-md-2">\
-            <div class="card">\
-              <img class="card-img-top" src="'+ msg.url + '" alt="Card image cap">\
-              <p class="center">'+ msg.name + '</p>\
-            </div >\
+              <div class="flip-container">\
+                <div class="flipper">\
+                  <div class="front">\
+                  </div>\
+                  <div class="back ">\
+                      <div class="card">\
+                        <img class="card-img-top" src="'+ msg.url + '" alt="Card image cap">\
+                        <div class="card-block">\
+                          <p class="card-text">'+ msg.name + ':' + msg.card_value + '</p>\
+                        </div>\
+                      </div >\
+                  </div>\
+                </div>\
+              </div>\
           </div > '
         );
       });
 
-      drawNew()
-
+      drawNew();
 
       $('#reset').click(function () {
+        $('#counter').html(0);
+        $('.flip-container').addClass('animate bounceOutLeft');
+
         socket.emit('card reset');
         drawNew();
       });
+
+      $('#show').click(function () {
+        $('.flip-container').toggleClass("hover");
+      })
 
       function drawNew() {
         $('.card-container').empty();
