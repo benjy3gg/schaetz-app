@@ -67,6 +67,8 @@
 </head>
 
 <body>
+  <h2>Hallo Schätzchen</h2>
+  <h2 id="name"></h2>
   <div class="row" id="card-deck">
   </div>
   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
@@ -83,6 +85,7 @@
       } else {
         person = localStorage['name'];
       }
+      $('#name').html(person);
 
       if (!localStorage['imageUrl']) {
         var urlPrompt = prompt("enter your avatar image", "https://media.giphy.com/media/xUNd9FzxmXhhaD3tvO/200w_d.gif");
