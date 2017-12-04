@@ -10,7 +10,6 @@
     crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
     crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="css/animate.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.js"></script>
   <title>Socket.IO chat</title>
   <style>
@@ -67,52 +66,38 @@
 </head>
 
 <body>
-  <div class="row" id="card-deck">
+  <div class="container">
+    <div class="row align-items-center">
+      <h1>It's Schätz-Time!!!</h1>
+      <div class="btn btn-warning" id="reset">Neu schätzen</div>
+    </div>
+
+    <div class="row" id="card-deck">
+
+    </div>
   </div>
   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
     $(function () {
-      var sizes = ['Training', 'Amateur', 'Semi-Pro', 'World-Class', 'Legendary'];
       var socket = io();
-
-      var username = "";
-      var person = prompt("Please enter your name", "Harry Potter");
-
-      $('form').submit(function () {
-        socket.emit('chat message', $('#m').val());
-        $('#m').val('');
-        return false;
-      });
-      socket.on('chat message', function (msg) {
-        $('#messages').append($('<li>').text(msg));
-        window.scrollTo(0, document.body.scrollHeight);
-      });
-
-      $.each(sizes, function (index, size) {
+      socket.on('card draw', function (msg) {
         $('#card-deck').append(
-          '<div class="col-md-2 karte" data-value="' + size + '">\
+          '<div class="col-md-2">\
             <div class="card">\
-              <img class="card-img-top" src="holder.js/100px100?text='+ size + '" alt="Card image cap">\
-          <div class="card-block">\
-                <p class="card-text">'+ size + '</p>\
+              <img class="card-img-top" src="http://via.placeholder.com/250x200?text='+ msg.name + '" alt="Card image cap">\
+              <div class="card-block">\
+                <p class="card-text">'+ msg.card_value + '</p>\
               </div>\
-            </div >\
-          </div > '
-        )
+            </div>\
+          </div>'
+        );
       });
 
-      $('.karte').click(function (item) {
-        var name = person;
-        var card_value = $(this).data("value");
-        var data = { "name": name, "card_value": card_value };
-        socket.emit('card draw', data);
-        $('.karte').addClass('animated bounceOutLeft');
+      $('#reset').click(function () {
+        socket.emit('card reset');
+        $('#card-deck').html('');
       });
-
-      socket.on('card reset', function () {
-        $('.karte').removeClass('bounceOutLeft').addClass('animated bounceInLeft');
-      })
     });
   </script>
 </body>
