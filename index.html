@@ -73,11 +73,24 @@
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
     $(function () {
-      var sizes = ['Training', 'Amateur', 'Semi-Pro', 'World-Class', 'Legendary'];
+      var sizes = ['Training', 'Amateur', 'Semi-Pro', 'Pro', 'World-Class', 'Legendary'];
       var socket = io();
 
       var username = "";
-      var person = prompt("Please enter your name", "Harry Potter");
+      if (!localStorage['name']) {
+        var person = prompt("Please enter your name", "Harry Potter");
+        localStorage['name'] = person;
+      } else {
+        person = localStorage['name'];
+      }
+
+      if (!localStorage['imageUrl']) {
+        var urlPrompt = prompt("enter your avatar image", "https://media.giphy.com/media/xUNd9FzxmXhhaD3tvO/200w_d.gif");
+        localStorage['imageUrl'] = urlPrompt;
+      } else {
+        urlPrompt = localStorage['imageUrl'];
+      }
+
 
       $('form').submit(function () {
         socket.emit('chat message', $('#m').val());
@@ -105,7 +118,7 @@
       $('.karte').click(function (item) {
         var name = person;
         var card_value = $(this).data("value");
-        var data = { "name": name, "card_value": card_value };
+        var data = { "name": name, "card_value": card_value, "url": urlPrompt };
         socket.emit('card draw', data);
         $('.karte').addClass('animated bounceOutLeft');
       });

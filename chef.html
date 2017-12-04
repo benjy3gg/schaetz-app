@@ -10,57 +10,14 @@
     crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
     crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.js"></script>
+
   <title>Socket.IO chat</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font: 13px Helvetica, Arial;
-    }
-
-    form {
-      background: #000;
-      padding: 3px;
-      position: fixed;
-      bottom: 0;
+    .card-deck {
+      background-color: grey;
+      margin: 10px;
+      height: 150px;
       width: 100%;
-    }
-
-    form input {
-      border: 0;
-      padding: 10px;
-      width: 90%;
-      margin-right: .5%;
-    }
-
-    form button {
-      width: 9%;
-      background: rgb(130, 224, 255);
-      border: none;
-      padding: 10px;
-    }
-
-    #messages {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    #messages li {
-      padding: 5px 10px;
-    }
-
-    #messages li:nth-child(odd) {
-      background: #eee;
-    }
-
-    #messages {
-      margin-bottom: 40px
     }
   </style>
 </head>
@@ -71,33 +28,46 @@
       <h1>It's Schätz-Time!!!</h1>
       <div class="btn btn-warning" id="reset">Neu schätzen</div>
     </div>
-
-    <div class="row" id="card-deck">
-
-    </div>
+    <div class="card-container"></div>
   </div>
   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.js"></script>
   <script>
     $(function () {
       var socket = io();
+      var sizes = ['Training', 'Amateur', 'Semi-Pro', 'Pro', 'World-Class', 'Legendary'];
       socket.on('card draw', function (msg) {
-        $('#card-deck').append(
+        $('#card-deck-' + msg.card_value).append(
           '<div class="col-md-2">\
             <div class="card">\
-              <img class="card-img-top" src="http://via.placeholder.com/250x200?text='+ msg.name + '" alt="Card image cap">\
-              <div class="card-block">\
-                <p class="card-text">'+ msg.card_value + '</p>\
-              </div>\
-            </div>\
+              <img class="card-img-top" src="'+ msg.url + '" alt="Card image cap">\
+              <p>'+ msg.name + '</p>\
+            </div >\
+          </div > '
+        );
+      });
+
+      $(sizes).each(function (i, size) {
+        $('.card-container').append(
+          '<div class="row card-deck well" id="card-deck-' + size + '">\
+          <div class="col-md-2">'+ size + '</div>\
           </div>'
         );
       });
 
       $('#reset').click(function () {
         socket.emit('card reset');
-        $('#card-deck').html('');
+        drawNew();
       });
+
+      function drawNew() {
+        $('.card-container').html(
+          '<div class="row card-deck" id="card-deck-' + size + '">\
+          <div class="col-md-2">'+ size + '</div>\
+          </div>'
+        );
+      }
     });
   </script>
 </body>
