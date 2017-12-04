@@ -25,7 +25,8 @@
 <body>
   <div class="container">
     <div class="row align-items-center">
-      <h1>It's Schätz-Time!!!</h1>
+      <h1>It's Schätz-Time!!!</h1> -
+      <h2 id="roomCode">0000</h2>
       <div class="btn btn-warning" id="reset">Neu schätzen</div>
     </div>
     <div class="card-container"></div>
@@ -37,24 +38,26 @@
     $(function () {
       var socket = io();
       var sizes = ['Training', 'Amateur', 'Semi-Pro', 'Pro', 'World-Class', 'Legendary'];
+
+      var roomCode = prompt("enter a room code", "12345");
+      if (roomCode) {
+        $('#roomCode').html(roomCode);
+        socket.emit('room', roomCode);
+      }
+
       socket.on('card draw', function (msg) {
         $('#card-deck-' + msg.card_value).append(
           '<div class="col-md-2">\
             <div class="card">\
               <img class="card-img-top" src="'+ msg.url + '" alt="Card image cap">\
-              <p>'+ msg.name + '</p>\
+              <p class="center">'+ msg.name + '</p>\
             </div >\
           </div > '
         );
       });
 
-      $(sizes).each(function (i, size) {
-        $('.card-container').append(
-          '<div class="row card-deck well" id="card-deck-' + size + '">\
-          <div class="col-md-2">'+ size + '</div>\
-          </div>'
-        );
-      });
+      drawNew()
+
 
       $('#reset').click(function () {
         socket.emit('card reset');
@@ -62,12 +65,15 @@
       });
 
       function drawNew() {
-        $('.card-container').html(
-          '<div class="row card-deck" id="card-deck-' + size + '">\
-          <div class="col-md-2">'+ size + '</div>\
-          </div>'
-        );
-      }
+        $('.card-container').empty();
+        $(sizes).each(function (i, size) {
+          $('.card-container').append(
+            '<div class="row card-deck" id="card-deck-' + size + '">\
+            <div class="col-md-2">'+ size + '</div>\
+            </div>'
+          );
+        })
+      };
     });
   </script>
 </body>

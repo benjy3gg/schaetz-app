@@ -91,6 +91,10 @@
         urlPrompt = localStorage['imageUrl'];
       }
 
+      var roomCode = prompt("enter room code", "12345");
+      if (roomCode) {
+        socket.emit('room', roomCode);
+      }
 
       $('form').submit(function () {
         socket.emit('chat message', $('#m').val());
