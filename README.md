@@ -1,6 +1,6 @@
 # schaetz-app
 
-This app is made for scrum teams, which estimate in degree of difficulty.
+This app is made for scrum teams which estimate in degree of difficulty.
 
 ## presenter
 To enter the presenter-mode, add /chef to the url.
