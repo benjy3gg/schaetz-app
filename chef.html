@@ -12,87 +12,16 @@
     crossorigin="anonymous"></script>
   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.js"></script>
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/animate.css" rel="stylesheet">
 
   <title>Socket.IO chat</title>
-  <style>
-    .card-deck {
-      margin-top: 10px;
-      height: 100px;
-    }
-
-    .card {
-      margin-left: 0px !important;
-      margin-right: 0px !important;
-    }
-
-    .card-img-top {
-      object-fit: cover;
-      height: 72px;
-    }
-
-    /* entire container, keeps perspective */
-
-    .flip-container {
-      perspective: 1000px;
-    }
-
-    /* flip the pane when hovered */
-
-    .flip-container:hover .flipper,
-    .flip-container.hover .flipper {
-      transform: rotateY(180deg);
-    }
-
-    .flip-container,
-    .front,
-    .back {
-      width: 100px;
-      height: 100px;
-    }
-
-    /* flip speed goes here */
-
-    .flipper {
-      transition: 0.6s;
-      transform-style: preserve-3d;
-
-      position: relative;
-    }
-
-    /* hide back of pane during swap */
-
-    .front,
-    .back {
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    /* front pane, placed above back */
-
-    .front {
-      z-index: 2;
-      /* for firefox 31 */
-      transform: rotateY(0deg);
-    }
-
-    /* back, initially hidden pane */
-
-    .back {
-      transform: rotateY(180deg);
-    }
-  </style>
 </head>
 
 <body>
-  <div class="jumbotron">
-    <div class="container">
-      <h1 class="display-3">Schätz-App</h1>
-      <h1 class="lead" id="roomCode">Room-Code: ----</h1>
-    </div>
+  <div class="container">
+    <h1 class="display-3">Schätz-App</h1>
+    <h1 class="lead" id="roomCode">Room-Code: ----</h1>
   </div>
 
   <div class="container">
@@ -101,15 +30,32 @@
         <span id="counter">0</span> von
         <span id="users">-1</span>
       </button>
-      <button class="btn btn-warning float-right" id="reset">Neu schätzen</button>
+      <button class="btn btn-warning float-right text-light" id="reset">Neu schätzen</button>
     </div>
   </div>
   <!--<div id="iframe"></div>-->
-  <div class="card-container container"></div>
+  <div class="container">
+    <div class="row mt-3" id="card-container">
+
+    </div>
+  </div>
 
   </div>
   <script>
     $(function () {
+
+      $.fn.extend({
+        animateCss: function (animationName, callback) {
+          var animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+          this.addClass('animated ' + animationName).one(animationEnd, function () {
+            $(this).removeClass('animated ' + animationName);
+            if (callback) {
+              callback($(this));
+            }
+          });
+          return this;
+        }
+      });
       var socket = io();
       var sizes = ['Training', 'Amateur', 'Semi-Pro', 'Pro', 'World-Class', 'Legendary'];
 
@@ -126,25 +72,9 @@
         $('#users').html(parseInt($('#users').html()) + 1);
       })
       socket.on('card draw', function (msg) {
+        numCards = $('#card-container').children().length;
         $('#counter').html(parseInt($('#counter').html()) + 1);
-        $('#card-deck-' + msg.card_value).append(
-          '<div class="col-md-2">\
-              <div class="flip-container">\
-                <div class="flipper">\
-                  <div class="front">\
-                  </div>\
-                  <div class="back ">\
-                      <div class="card">\
-                        <img class="card-img-top" src="'+ msg.url + '" alt="Card image cap">\
-                        <div class="card-block">\
-                          <p class="card-text">'+ msg.name + '</p>\
-                        </div>\
-                      </div >\
-                  </div>\
-                </div>\
-              </div>\
-          </div > '
-        );
+        $('#card-container').append(cardHtml(numCards, msg));
       });
 
       drawNew();
@@ -157,26 +87,51 @@
 
       $('#reset').click(function () {
         $('#counter').html(0);
-        $('.flip-container').addClass('animate bounceOutLeft');
+        $('.card-container-card').animateCss('bounceOutLeft', function (element) {
+          $(element).closest('.card-container-card-container').remove();
+        });
 
         socket.emit('card reset');
         drawNew();
       });
 
       $('#show').click(function () {
-        $('.flip-container').toggleClass("hover");
+        $('.card-container-card').toggleClass('hover');
       })
 
       function drawNew() {
         $('.card-container').empty();
-        $(sizes).each(function (i, size) {
-          $('.card-container').append(
-            '<div class="card-deck bg-light border border-success text-dark" id="card-deck-' + size + '">\
-              <div class="col-md-2">'+ size + '</div>\
-            </div>'
-          );
-        })
       };
+
+      function cardHtml(numCards, msg) {
+        return `
+        <div class="col-md-4 col-sm-6 animated bounceInDown card-container-card-container">
+          <div class="card-container-card manual-flip" style="animation-delay: ${numCards * 0.3}s; transition-delay: ${numCards * 0.1}s;" data-value="${msg.card_value}" data-rotation="${Math.random() * 45 - 20}">
+            <div class="card" style="transition-delay: ${numCards * 0.3}s;">
+              <div class="front">
+                <div class="header">
+                  <h5 class="motto">"Die Spannung steigt!!!"</h5>
+                </div>
+              </div>
+              <!-- end front panel -->
+              <div class="back">
+                <div class="user">
+                  <img class="img-circle" src="${msg.url}" />
+                </div>
+                <div class="content">
+                  <div class="main">
+                    <h3 class="name">${msg.name}</h3>
+                    <p class="profession">${msg.card_value}</p>
+                  </div>
+                </div>
+              </div>
+              <!-- end back panel -->
+              </div>
+            <!-- end card -->
+          </div>
+          <!-- end card-container -->
+      </div>`
+      }
     });
   </script>
 </body>
