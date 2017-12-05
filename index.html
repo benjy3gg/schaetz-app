@@ -2,66 +2,31 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
     crossorigin="anonymous">
-  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n"
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
     crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
     crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
     crossorigin="anonymous"></script>
   <link rel="stylesheet" href="css/animate.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.js"></script>
   <title>Socket.IO chat</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    .card {
+      cursor: pointer;
+      background-color: rgb(50, 50, 243);
+      color: white;
+      height: 100px;
+      -webkit-transition: background-color 0.3s ease-out;
+      -ms-transition: background-color 0.3s ease-out;
+      transition: background-color 0.3s ease-out;
     }
 
-    body {
-      font: 13px Helvetica, Arial;
-    }
-
-    form {
-      background: #000;
-      padding: 3px;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-    }
-
-    form input {
-      border: 0;
-      padding: 10px;
-      width: 90%;
-      margin-right: .5%;
-    }
-
-    form button {
-      width: 9%;
-      background: rgb(130, 224, 255);
-      border: none;
-      padding: 10px;
-    }
-
-    #messages {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    #messages li {
-      padding: 5px 10px;
-    }
-
-    #messages li:nth-child(odd) {
-      background: #eee;
-    }
-
-    #messages {
-      margin-bottom: 40px
+    .disabled {
+      background-color: rgb(158, 156, 156);
+      cursor: disabled;
     }
   </style>
 </head>
@@ -69,8 +34,10 @@
 <body>
   <h2>Hallo Schätzchen</h2>
   <h2 id="name"></h2>
-  <div class="row" id="card-deck">
+  <div class="container">
+    <div class="row align-items-center" id="card-deck"></div>
   </div>
+
   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
@@ -94,45 +61,55 @@
         urlPrompt = localStorage['imageUrl'];
       }
 
-      var roomCode = prompt("enter room code", "12345");
+      //var roomCode = prompt("enter room code", "12345");
+      roomCode = 12345;
       if (roomCode) {
         socket.emit('room', roomCode);
       }
 
-      $('form').submit(function () {
-        socket.emit('chat message', $('#m').val());
-        $('#m').val('');
-        return false;
+      socket.on('chef connected', function () {
+        alert("chef ist da");
+        socket.emit('room', roomCode);
       });
+
       socket.on('chat message', function (msg) {
         $('#messages').append($('<li>').text(msg));
         window.scrollTo(0, document.body.scrollHeight);
       });
 
-      $.each(sizes, function (index, size) {
-        $('#card-deck').append(
-          '<div class="col-md-2 karte" data-value="' + size + '">\
-            <div class="card">\
-              <img class="card-img-top" src="holder.js/100px100?text='+ size + '" alt="Card image cap">\
-          <div class="card-block">\
-                <p class="card-text">'+ size + '</p>\
+      function drawCards(sizes) {
+        $('#card-deck').empty();
+        $.each(sizes, function (index, size) {
+          $('#card-deck').append(
+            '<div class="col-md-2 col-sm-4 col-6">\
+            <div class="card" data-value="' + size + '" data-clickable="true">\
+              <div class="card-block">\
+              <h4 class="card-title">'+ size + '</h4>\
               </div>\
-            </div >\
+            </div>\
           </div > '
-        )
-      });
+          )
+        });
+        $('.card').click(function (item) {
+          if ($(this).data('clickable') === true) {
+            $('.card').data('clickable', false);
+            var name = person;
+            var card_value = $(this).data("value");
+            var data = { "name": name, "card_value": card_value, "url": urlPrompt };
+            socket.emit('card draw', data);
+            $('.card:not([data-value="' + card_value + '"]').addClass('disabled');
+          }
+        });
+      }
 
-      $('.karte').click(function (item) {
-        var name = person;
-        var card_value = $(this).data("value");
-        var data = { "name": name, "card_value": card_value, "url": urlPrompt };
-        socket.emit('card draw', data);
-        $('.karte').addClass('animated bounceOutLeft');
-      });
+      drawCards(sizes);
+
+
 
       socket.on('card reset', function () {
-        $('.karte').removeClass('bounceOutLeft').addClass('animated bounceInLeft');
-      })
+        drawCards(sizes);
+      });
+
     });
   </script>
 </body>

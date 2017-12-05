@@ -33,6 +33,15 @@ io.on("connection", function(socket) {
     socket.join(room);
     io.sockets.in(room).emit("user connected");
   });
+
+  socket.on("chef connected", function(room) {
+    io.sockets.in(room).emit("chef connected");
+  });
+
+  socket.on("set sizes", function(sizes) {
+    var currentRoom = socket.rooms[Object.keys(socket.rooms)[0]];
+    io.sockets.in(currentRoom).emit("set sizes", sizes);
+  });
 });
 
 http.listen(port, function() {

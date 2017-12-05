@@ -2,22 +2,32 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
     crossorigin="anonymous">
-  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n"
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
     crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
     crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
     crossorigin="anonymous"></script>
+  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.js"></script>
 
   <title>Socket.IO chat</title>
   <style>
     .card-deck {
-      background-color: grey;
-      margin: 10px;
-      height: 150px;
-      width: 100%;
+      margin-top: 10px;
+      height: 100px;
+    }
+
+    .card {
+      margin-left: 0px !important;
+      margin-right: 0px !important;
+    }
+
+    .card-img-top {
+      object-fit: cover;
+      height: 72px;
     }
 
     /* entire container, keeps perspective */
@@ -36,8 +46,8 @@
     .flip-container,
     .front,
     .back {
-      width: 200px;
-      height: 480px;
+      width: 100px;
+      height: 100px;
     }
 
     /* flip speed goes here */
@@ -78,35 +88,39 @@
 </head>
 
 <body>
-  <div class="container">
-    <div class="row align-items-center">
-      <h1>Schätz-App</h1> -
-      <h1 id="roomCode">----</h1>
-      <br />
-    </div>
-    <div class="row align-items-center">
-      <div class="btn btn-warning" id="reset">Neu schätzen</div>
-      <div class="btn btn-success" id="show">Karten anzeigen</div>
-      <p id="counter">0</p> von
-      <p id="users">-1</p>
+  <div class="jumbotron">
+    <div class="container">
+      <h1 class="display-3">Schätz-App</h1>
+      <h1 class="lead" id="roomCode">Room-Code: ----</h1>
     </div>
   </div>
-  <div class="card-container"></div>
+
+  <div class="container">
+    <div class="clearfix">
+      <button class="btn btn-success float-left" id="show">Karten anzeigen
+        <span id="counter">0</span> von
+        <span id="users">-1</span>
+      </button>
+      <button class="btn btn-warning float-right" id="reset">Neu schätzen</button>
+    </div>
+  </div>
+  <!--<div id="iframe"></div>-->
+  <div class="card-container container"></div>
 
   </div>
-  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.js"></script>
   <script>
     $(function () {
       var socket = io();
       var sizes = ['Training', 'Amateur', 'Semi-Pro', 'Pro', 'World-Class', 'Legendary'];
 
+      socket.emit('set sizes', sizes);
       var roomCode = prompt("enter a room code", "12345");
       if (roomCode) {
-        $('#roomCode').html(roomCode);
+        $('#roomCode').html("Room-Code: " + roomCode);
         socket.emit('room', roomCode);
+        socket.emit('chef connected', roomCode);
       }
+
 
       socket.on('user connected', function (msg) {
         $('#users').html(parseInt($('#users').html()) + 1);
@@ -135,6 +149,12 @@
 
       drawNew();
 
+      /*$('#url').on("keypress", function (event) {
+        if (event.which == 13 && !event.shiftKey) {
+          $('#iframe').html('<iframe width="500px" height="500px" src="">');
+        }
+      });*/
+
       $('#reset').click(function () {
         $('#counter').html(0);
         $('.flip-container').addClass('animate bounceOutLeft');
@@ -151,8 +171,8 @@
         $('.card-container').empty();
         $(sizes).each(function (i, size) {
           $('.card-container').append(
-            '<div class="row card-deck" id="card-deck-' + size + '">\
-            <div class="col-md-2">'+ size + '</div>\
+            '<div class="card-deck bg-light border border-success text-dark" id="card-deck-' + size + '">\
+              <div class="col-md-2">'+ size + '</div>\
             </div>'
           );
         })
