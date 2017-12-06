@@ -10,36 +10,23 @@
     crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
     crossorigin="anonymous"></script>
+  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   <link rel="stylesheet" href="css/animate.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.js"></script>
-  <title>Socket.IO chat</title>
-  <style>
-    .card {
-      cursor: pointer;
-      background-color: rgb(50, 50, 243);
-      color: white;
-      height: 100px;
-      -webkit-transition: background-color 0.3s ease-out;
-      -ms-transition: background-color 0.3s ease-out;
-      transition: background-color 0.3s ease-out;
-    }
-
-    .disabled {
-      background-color: rgb(158, 156, 156);
-      cursor: disabled;
-    }
-  </style>
+  <link rel="stylesheet" href="css/style.css">
+  <title>Schätz-App</title>
 </head>
 
 <body>
-  <h2>Hallo Schätzchen</h2>
-  <h2 id="name"></h2>
+  <div class="container">
+    <h1 class="display-3">Hallo Schätzchen:
+      <span id="name"></span>
+    </h1>
+  </div>
   <div class="container">
     <div class="row align-items-center" id="card-deck"></div>
   </div>
 
-  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+
   <script>
     $(function () {
       var sizes = ['Training', 'Amateur', 'Semi-Pro', 'Pro', 'World-Class', 'Legendary'];
@@ -80,34 +67,54 @@
         $('#card-deck').empty();
         $.each(sizes, function (index, size) {
           $('#card-deck').append(
-            '<div class="col-md-2 col-sm-4 col-6">\
-            <div class="card" data-value="' + size + '" data-clickable="true">\
-              <div class="card-block">\
-              <h4 class="card-title">'+ size + '</h4>\
-              </div>\
-            </div>\
-          </div > '
-          )
+            cardHtml(size, urlPrompt, person)
+          );
         });
-        $('.card').click(function (item) {
-          if ($(this).data('clickable') === true) {
-            $('.card').data('clickable', false);
-            var name = person;
-            var card_value = $(this).data("value");
-            var data = { "name": name, "card_value": card_value, "url": urlPrompt };
-            socket.emit('card draw', data);
-            $('.card:not([data-value="' + card_value + '"]').addClass('disabled');
-          }
+        $('.card-container-card-container').click(function (item) {
+          /*if ($(this).data('clickable') === true) {*/
+          $('.card-container-card-container').data('clickable', false);
+          var name = person;
+          var card_value = $(this).find('.card-container-card').data("value");
+          var data = { "name": name, "card_value": card_value, "url": urlPrompt };
+          socket.emit('card draw', data);
+          $('.manual-flip:not([data-value="' + card_value + '"]').addClass('hover')
+          /*}*/
         });
       }
 
       drawCards(sizes);
-
-
-
       socket.on('card reset', function () {
         drawCards(sizes);
       });
+
+      function cardHtml(size, urlPrompt, person) {
+        return `
+        <div class="col-xl-2 col-md-3 col-sm-6 animated bounceInDown card-container-card-container">
+          <div class="card-container-card manual-flip" data-value="${size}">
+            <div class="card">
+              <div class="front">
+                  <div class="user">
+                  <img class="img-circle" src="${urlPrompt}" />
+                </div>
+                <div class="content">
+                  <div class="main">
+                    <h3 class="name">${size}</h3>
+                  </div>
+                </div>              
+              </div>
+              <!-- end front panel -->
+              <div class="back">
+                <div class="header">
+                  <h5 class="motto">"Die Spannung steigt!!!"</h5>
+                </div>
+              </div>
+              <!-- end back panel -->
+              </div>
+            <!-- end card -->
+          </div>
+          <!-- end card-container -->
+      </div>`
+      }
 
     });
   </script>
