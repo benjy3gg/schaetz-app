@@ -19,6 +19,18 @@ body {
   margin-bottom: 30px;
   box-shadow: 0px 1px 7px 1px rgba(0, 0, 0, 0.14);
 }
+
+.stack {
+  height: 0px;
+  display: none;
+}
+
+.stack.show {
+  height: 300px;
+  border-radius: 10px;
+  display: block;
+  padding: 50px;
+}
 /* flip the pane when hovered */
 .card-container-card:not(.manual-flip):hover .card,
 .card-container-card.hover.manual-flip .card {

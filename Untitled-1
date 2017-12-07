@@ -1,0 +1,39 @@
+var counters = []
+        $('.card-container-card-container').each(function (i, element) {
+          var card = $(element).find('.card-container-card');
+
+          $(card).toggleClass("hover");
+          /*$(element).css("position", "absolute");*/
+          if (counters[$(card).data("value")] === undefined) {
+            counters[$(card).data("value")] = 0;
+          }
+          counters[$(card).data("value")]++;
+          switch ($(card).data("value")) {
+            case 'Legendary':
+              var top = 250;
+              var left = 100;
+              break;
+            case 'World-Class':
+              var top = 250;
+              var left = 500;
+              break;
+            case 'Pro':
+              var top = 450;
+              var left = 100;
+              break;
+            case 'Semi-Pro':
+              var top = 450;
+              var left = 500;
+              break;
+            case 'Amateur':
+              var top = 650;
+              var left = 100;
+              break;
+            case 'Training':
+              var top = 650;
+              var left = 500;
+              break;
+          }
+          $(element).css("top", `${top + counters[$(card).data("value")] * 10}px`);
+          $(element).css("left", `${left}px`);
+          $(element).css("width", `200px`);

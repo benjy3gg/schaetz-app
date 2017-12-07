@@ -4,7 +4,7 @@
 <head>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
     crossorigin="anonymous">
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
     crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
     crossorigin="anonymous"></script>
@@ -38,11 +38,33 @@
 
     </div>
   </div>
+  <div class="container">
+    <div class="row mt-3" id="card-container-stacked">
+      <div class="col-md-4">
+        <div class="stack mb-4" id="stack-Legendary">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stack" id="stack-World-Class"></div>
+      </div>
+      <div class="col-md-4">
+        <div class="stack" id="stack-Pro"></div>
+      </div>
+      <div class="col-md-4">
+        <div class="stack" id="stack-Semi-Pro"></div>
+      </div>
+      <div class="col-md-4">
+        <div class="stack" id="stack-Amateur"></div>
+      </div>
+      <div class="col-md-4">
+        <div class="stack" id="stack-Training"></div>
+      </div>
+    </div>
+  </div>
 
   </div>
   <script>
     $(function () {
-
       $.fn.extend({
         animateCss: function (animationName, callback) {
           var animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
@@ -55,6 +77,45 @@
           return this;
         }
       });
+
+      $.fn.animateTo = function (appendTo, destination, duration, easing, complete) {
+        if (appendTo !== 'appendTo' &&
+          appendTo !== 'prependTo' &&
+          appendTo !== 'insertBefore' &&
+          appendTo !== 'insertAfter') return $(this);
+        var target = $(this).clone(true).css('visibility', 'hidden')[appendTo](destination);
+        $(this).css({
+          'position': 'relative',
+          'top': '0px',
+          'left': '0px'
+        })
+        $(this).animate({
+          'top': (target.offset().top - $(this).offset().top) + 'px',
+          'left': (target.offset().left - $(this).offset().left) + 'px'
+        }, duration, easing, function () {
+          target.replaceWith($(this));
+          $(this).css({
+            'position': 'static',
+            'top': '',
+            'left': ''
+          });
+          if ($.isFunction(complete)) complete.call($(this));
+        });
+      }
+
+      $.fn.animateAppendTo = function (sel, speed, callback) {
+        var $this = this,
+          newEle = $this.clone(true).appendTo(sel),
+          newPos = newEle.position();
+        newEle.hide();
+        $this.css('position', 'absolute').animate(newPos, speed, function () {
+          newEle.show();
+          $this.remove();
+          if (callback) {
+            callback($(this));
+          }
+        })
+      };
       var socket = io();
       var sizes = ['Training', 'Amateur', 'Semi-Pro', 'Pro', 'World-Class', 'Legendary'];
 
@@ -88,24 +149,47 @@
         $('#counter').html(0);
         $('.card-container-card').animateCss('bounceOutLeft', function (element) {
           $(element).closest('.card-container-card-container').remove();
+          drawNew();
         });
 
         socket.emit('card reset');
-        drawNew();
+
       });
 
       $('#show').click(function () {
         $('.card-container-card').toggleClass('hover');
+        $('.stack').addClass('show');
+        var stackSizes = [];
+        $('.card-container-card').each(function (i, item) {
+          if (stackSizes[$(this).data('value')] == undefined) {
+            stackSizes[$(this).data('value')] = 0
+          }
+          $(this).detach().appendTo('#stack-' + $(this).data('value'));
+          /*$(this).animateAppendTo('#stack-' + $(this).data('value'), 1000, function () {*/
+          $(this).css("position", "absolute");
+          if (stackSizes[$(this).data('value')] % 2 == 0) {
+            $(this).css("left", '25px');
+          } else {
+            $(this).css("left", '105px');
+          }
+          $(this).css("top", `${stackSizes[$(this).data('value')] * 30}px`);
+          $(this).css("width", 250 - stackSizes[$(this).data('value')] * 2 + "px");
+          $(this).css("z-index", 100 - stackSizes[$(this).data('value')]);
+          $(this).css("transform", `rotate(${$(this).data("rotation")}deg)`);
+          stackSizes[$(this).data('value')]++;
+          /*});*/
+        });
       })
 
       function drawNew() {
-        $('.card-container').empty();
+        $('#card-container').empty();
+        $('.stack').empty();
       };
 
       function cardHtml(numCards, msg) {
         return `
         <div class="col-md-4 col-sm-6 animated bounceInDown card-container-card-container">
-          <div class="card-container-card manual-flip" style="animation-delay: ${numCards * 0.3}s; transition-delay: ${numCards * 0.1}s;" data-value="${msg.card_value}" data-rotation="${Math.random() * 45 - 20}">
+          <div class="card-container-card manual-flip" style="animation-delay: ${numCards * 0.3}s; transition-delay: ${numCards * 0.1}s;" data-value="${msg.card_value}" data-rotation="${Math.random() * 5 - 2.5}">
             <div class="card" style="transition-delay: ${numCards * 0.3}s;">
               <div class="front">
                 <div class="header">
