@@ -71,14 +71,14 @@
           );
         });
         $('.card-container-card-container').click(function (item) {
-          /*if ($(this).data('clickable') === true) {*/
-          $('.card-container-card-container').data('clickable', false);
-          var name = person;
-          var card_value = $(this).find('.card-container-card').data("value");
-          var data = { "name": name, "card_value": card_value, "url": urlPrompt };
-          socket.emit('card draw', data);
-          $('.manual-flip:not([data-value="' + card_value + '"]').addClass('hover')
-          /*}*/
+          if ($(this).data('clickable') === true) {
+            $('.card-container-card-container').data('clickable', false);
+            var name = person;
+            var card_value = $(this).find('.card-container-card').data("value");
+            var data = { "name": name, "card_value": card_value, "url": urlPrompt };
+            socket.emit('card draw', data);
+            $('.manual-flip:not([data-value="' + card_value + '"]').addClass('hover')
+          }
         });
       }
 
