@@ -13,6 +13,7 @@
   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   <link href="css/animate.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
   <title>Schätz-App</title>
 </head>
 
@@ -21,6 +22,56 @@
     <h1 class="display-3">Schätz-App
       <span id="roomCode"></span>
     </h1>
+  </div>
+
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+    Launch demo modal
+  </button>
+
+  <!-- Modal -->
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Room Settings</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form class="form-horizontal" role="form" id="settingsForm">
+              <div class="form-group">
+                  <label  class="col-sm-2 control-label"
+                            for="inputUrl">Base-Url</label>
+                  <div class="col-sm-10">
+                      <input type="text" class="form-control" 
+                      id="inputUrl" placeholder="Base-Url (for tickets)"/>
+                  </div>
+                </div>
+            <div class="form-group">
+              <label  class="col-sm-2 control-label"
+                        for="inputTickets">Tickets</label>
+              <div class="col-sm-10">
+                  <input type="text" class="form-control" 
+                  id="inputTickets" placeholder="Tickets (comma-separated)"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label"
+                    for="inputSizes" >Sizes</label>
+              <div class="col-sm-10">
+                  <input type="text" class="form-control"
+                      id="inputSizes" placeholder="Ticket Sizes (comma-separated)"/>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" data-dismiss="modal">Save</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="container">
@@ -65,6 +116,51 @@
   </div>
   <script>
     $(function () {
+
+      let settings;
+
+      if(localStorage.getItem('settings')) {
+        settings = JSON.parse(localStorage.getItem('settings'));
+      } else {
+        $('#myModal').modal('show');
+      }
+
+      var socket = io();
+      var sizes = settings.sizes;
+
+      socket.emit('set sizes', sizes);
+      
+      socket.on('user connected', function (msg) {
+        $('#users').html(parseInt($('#users').html()) + 1);
+      })
+      socket.on('card draw', function (msg) {
+        numCards = $('#card-container').children().length;
+        $('#counter').html(parseInt($('#counter').html()) + 1);
+        $('#card-container').append(cardHtml(numCards, msg));
+      });
+
+      drawNew();
+
+      /*$('#url').on("keypress", function (event) {
+        if (event.which == 13 && !event.shiftKey) {
+          $('#iframe').html('<iframe width="500px" height="500px" src="">');
+        }
+      });*/
+
+      $('#myModal').on('hide.bs.modal', function (e) {
+        settings = processSettings();
+        localStorage.setItem('settings', JSON.stringify(settings));
+      })
+
+      function processSettings() {
+        let settings = {};
+        settings.sizes = $('#settingsForm #inputSizes').val().split(",");
+        settings.tickets = $('#settingsForm #inputTickets').val().split(",");
+        settings.baseUrl = $('#settingsForm #inputUrl').val();
+
+        return settings;
+      }
+
       $.fn.extend({
         animateCss: function (animationName, callback) {
           var animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
@@ -116,34 +212,6 @@
           }
         })
       };
-      var socket = io();
-      var sizes = ['Training', 'Amateur', 'Semi-Pro', 'Pro', 'World-Class', 'Legendary'];
-
-      socket.emit('set sizes', sizes);
-      var roomCode = prompt("enter a room code", "12345");
-      if (roomCode) {
-        $('#roomCode').html("Room-Code: " + roomCode);
-        socket.emit('room', roomCode);
-        socket.emit('chef connected', roomCode);
-      }
-
-
-      socket.on('user connected', function (msg) {
-        $('#users').html(parseInt($('#users').html()) + 1);
-      })
-      socket.on('card draw', function (msg) {
-        numCards = $('#card-container').children().length;
-        $('#counter').html(parseInt($('#counter').html()) + 1);
-        $('#card-container').append(cardHtml(numCards, msg));
-      });
-
-      drawNew();
-
-      /*$('#url').on("keypress", function (event) {
-        if (event.which == 13 && !event.shiftKey) {
-          $('#iframe').html('<iframe width="500px" height="500px" src="">');
-        }
-      });*/
 
       $('#reset').click(function () {
         $('#counter').html(0);

@@ -29,8 +29,12 @@
 
   <script>
     $(function () {
+      //$('#emoji-picker').emojiPicker();
+      
       var sizes = ['Training', 'Amateur', 'Semi-Pro', 'Pro', 'World-Class', 'Legendary'];
       var socket = io();
+
+      var user = {};
 
       var username = "";
       if (!localStorage['name']) {
@@ -40,6 +44,7 @@
         person = localStorage['name'];
       }
       $('#name').html(person);
+      user.name = person;
 
       if (!localStorage['imageUrl']) {
         var urlPrompt = prompt("enter your avatar image", "https://media.giphy.com/media/xUNd9FzxmXhhaD3tvO/200w_d.gif");
@@ -48,20 +53,18 @@
         urlPrompt = localStorage['imageUrl'];
       }
 
+      user.urlPrompt = urlPrompt;
+
       var roomCode = prompt("enter room code", "12345");
-      if (roomCode) {
-        socket.emit('room', roomCode);
+      user.roomCode = roomCode;
+      if (user) {
+        socket.emit('room', user);
       }
 
-      socket.on('chef connected', function () {
+      /*socket.on('chef connected', function () {
         alert("chef ist da");
         socket.emit('room', roomCode);
-      });
-
-      socket.on('chat message', function (msg) {
-        $('#messages').append($('<li>').text(msg));
-        window.scrollTo(0, document.body.scrollHeight);
-      });
+      });*/
 
       function drawCards(sizes) {
         $('#card-deck').empty();
@@ -73,10 +76,9 @@
         $('.card-container-card-container').click(function (item) {
           if ($(this).data('clickable') === true) {
             $('.card-container-card-container').data('clickable', false);
-            var name = person;
             var card_value = $(this).find('.card-container-card').data("value");
-            var data = { "name": name, "card_value": card_value, "url": urlPrompt };
-            socket.emit('card draw', data);
+            var data = { "user": user, "card_value": card_value };
+            socket.emit('user vote', data);
             $('.manual-flip:not([data-value="' + card_value + '"]').addClass('hover')
           }
         });
@@ -89,7 +91,7 @@
 
       function cardHtml(size, urlPrompt, person) {
         return `
-        <div class="col-xl-2 col-md-3 col-sm-6 animated bounceInDown card-container-card-container">
+        <div class="col-xl-2 col-md-3 col-sm-6 animated bounceInDown card-container-card-container" data-clickable="true">
           <div class="card-container-card manual-flip" data-value="${size}">
             <div class="card">
               <div class="front">

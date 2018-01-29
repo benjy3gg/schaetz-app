@@ -1,270 +1,252 @@
+<!doctype html>
 <html>
+<meta charset=utf-8>
 
 <head>
-    <link href="http://netdna.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Arima+Madurai:100,200,300,400,500,700,800,900" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
         crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
         crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
         crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
         crossorigin="anonymous"></script>
-    <link href="public/css/style.css" rel="stylesheet">
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <link href="css/animate.css" rel="stylesheet">
+    <link href="css/colors.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <script src="js/vue.js"></script>
+    <script src="js/colors.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+    <title>Schätz-App</title>
 </head>
 
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="col-sm-10 col-sm-offset-1">
-                <div class="col-md-4 col-sm-6">
-                    <div class="card-container">
-                        <div class="card">
-                            <div class="front">
-                                <div class="cover">
-                                    <img src="https://www.clipartsgram.com/image/129556292-kyz84k3.jpg" />
-                                </div>
-                                <div class="user">
-                                    <img class="img-circle" src="https://www2.mmu.ac.uk/media/mmuacuk/style-assets/images/r-research/profile-Zeyad.jpg" />
-                                </div>
-                                <div class="content">
-                                    <div class="main">
-                                        <h3 class="name">John Marvel</h3>
-                                        <p class="profession">CEO</p>
-                                        <p class="text-center">"I'm the new Sinatra, and since I made it here I can make it anywhere, yeah, they
-                                            love me everywhere"</p>
-                                    </div>
-                                    <div class="footer">
-                                        <i class="fa fa-mail-forward"></i> Auto Rotation
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- end front panel -->
-                            <div class="back">
-                                <div class="header">
-                                    <h5 class="motto">"To be or not to be, this is my awesome motto!"</h5>
-                                </div>
-                                <div class="content">
-                                    <div class="main">
-                                        <h4 class="text-center">Job Description</h4>
-                                        <p class="text-center">Web design, Adobe Photoshop, HTML5, CSS3, Corel and many others...</p>
-
-                                        <div class="stats-container">
-                                            <div class="stats">
-                                                <h4>235</h4>
-                                                <p>
-                                                    Followers
-                                                </p>
-                                            </div>
-                                            <div class="stats">
-                                                <h4>114</h4>
-                                                <p>
-                                                    Following
-                                                </p>
-                                            </div>
-                                            <div class="stats">
-                                                <h4>35</h4>
-                                                <p>
-                                                    Projects
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                                <div class="footer">
-                                    <div class="social-links text-center">
-                                        <a href="http://deepak646.blogspot.in/" class="facebook">
-                                            <i class="fa fa-facebook fa-fw"></i>
-                                        </a>
-                                        <a href="http://deepak646.blogspot.in/" class="google">
-                                            <i class="fa fa-google-plus fa-fw"></i>
-                                        </a>
-                                        <a href="http://deepak646.blogspot.in/" class="twitter">
-                                            <i class="fa fa-twitter fa-fw"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- end back panel -->
-                        </div>
-                        <!-- end card -->
-                    </div>
-                    <!-- end card-container -->
-                </div>
-                <!-- end col sm 3 -->
-                <div class="col-sm-1"></div>
-                <div class="col-md-4 col-sm-6">
-                    <div class="card-container manual-flip">
-                        <div class="card">
-                            <div class="front">
-                                <div class="cover">
-                                    <img src="https://www.clipartsgram.com/image/124089475-california-beaches-tumblr-wallpaper-3.jpg" />
-                                </div>
-                                <div class="user">
-                                    <img class="img-circle" src="http://www.outbrain.com/risingstars/wp-content/uploads/708x708-RS-Profile-Ashley-Callahan-400x400.jpg"
-                                    />
-                                </div>
-                                <div class="content">
-                                    <div class="main">
-                                        <h3 class="name">Andrew Mike</h3>
-                                        <p class="profession">Web Developer</p>
-                                        <p class="text-center">"Lamborghini Mercy
-                                            <br>Your chick she so thirsty
-                                            <br>I'm in that two seat Lambo"</p>
-                                    </div>
-                                    <div class="footer">
-                                        <button class="btn btn-simple" onclick="rotateCard(this)">
-                                            <i class="fa fa-mail-forward"></i> Manual Rotation
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- end front panel -->
-                            <div class="back">
-                                <div class="header">
-                                    <h5 class="motto">"To be or not to be, this is my awesome motto!"</h5>
-                                </div>
-                                <div class="content">
-                                    <div class="main">
-                                        <h4 class="text-center">Job Description</h4>
-                                        <p class="text-center">Web design, Adobe Photoshop, HTML5, CSS3, Corel and many others...</p>
-
-                                        <div class="stats-container">
-                                            <div class="stats">
-                                                <h4>235</h4>
-                                                <p>
-                                                    Followers
-                                                </p>
-                                            </div>
-                                            <div class="stats">
-                                                <h4>114</h4>
-                                                <p>
-                                                    Following
-                                                </p>
-                                            </div>
-                                            <div class="stats">
-                                                <h4>35</h4>
-                                                <p>
-                                                    Projects
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                                <div class="footer">
-                                    <button class="btn btn-simple" rel="tooltip" title="Flip Card" onclick="rotateCard(this)">
-                                        <i class="fa fa-reply"></i> Back
-                                    </button>
-                                    <div class="social-links text-center">
-                                        <a href="http://deepak646.blogspot.in/" class="facebook">
-                                            <i class="fa fa-facebook fa-fw"></i>
-                                        </a>
-                                        <a href="http://deepak646.blogspot.in/" class="google">
-                                            <i class="fa fa-google-plus fa-fw"></i>
-                                        </a>
-                                        <a href="http://deepak646.blogspot.in/" class="twitter">
-                                            <i class="fa fa-twitter fa-fw"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- end back panel -->
-                        </div>
-                        <!-- end card -->
-                    </div>
-                    <!-- end card-container -->
-                </div>
-                <!-- end col sm 3 -->
-                <div class="col-sm-1"></div>
-                <div class="col-md-4 col-sm-6">
-                    <div class="card-container">
-                        <div class="card">
-                            <div class="front">
-                                <div class="cover">
-                                    <img src="http://www.hdimageson.com/wp-content/uploads/2016/05/beach-images-tumblr-300x188.jpg" />
-                                </div>
-                                <div class="user">
-                                    <img class="img-circle" src="https://1.bp.blogspot.com/-aruLLVlXyJM/V_t-TxTncZI/AAAAAAAAJ3k/hnQKKVmKuOY_awf1nHGTsukGfw4qrde-gCLcB/s400/2.jpg"
-                                    />
-                                </div>
-                                <div class="content">
-                                    <div class="main">
-                                        <h3 class="name">Inna Corman</h3>
-                                        <p class="profession">Product Manager</p>
-
-                                        <p class="text-center">"I'm the new Sinatra, and since I made it here I can make it anywhere, yeah, they
-                                            love me everywhere"</p>
-                                    </div>
-                                    <div class="footer">
-                                        <div class="rating">
-                                            <i class="fa fa-mail-forward"></i> Auto Rotation
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- end front panel -->
-                            <div class="back">
-                                <div class="header">
-                                    <h5 class="motto">"To be or not to be, this is my awesome motto!"</h5>
-                                </div>
-                                <div class="content">
-                                    <div class="main">
-                                        <h4 class="text-center">Job Description</h4>
-                                        <p class="text-center">Web design, Adobe Photoshop, HTML5, CSS3, Corel and many others...</p>
-
-                                        <div class="stats-container">
-                                            <div class="stats">
-                                                <h4>235</h4>
-                                                <p>
-                                                    Followers
-                                                </p>
-                                            </div>
-                                            <div class="stats">
-                                                <h4>114</h4>
-                                                <p>
-                                                    Following
-                                                </p>
-                                            </div>
-                                            <div class="stats">
-                                                <h4>35</h4>
-                                                <p>
-                                                    Projects
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                                <div class="footer">
-                                    <div class="social-links text-center">
-                                        <a href="http://deepak646.blogspot.in/" class="facebook">
-                                            <i class="fa fa-facebook fa-fw"></i>
-                                        </a>
-                                        <a href="http://deepak646.blogspot.in/" class="google">
-                                            <i class="fa fa-google-plus fa-fw"></i>
-                                        </a>
-                                        <a href="http://deepak646.blogspot.in/" class="twitter">
-                                            <i class="fa fa-twitter fa-fw"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- end back panel -->
-                        </div>
-                        <!-- end card -->
-                    </div>
-                    <!-- end card-container -->
-                </div>
-                <!-- end col-sm-3 -->
-            </div>
-            <!-- end col-sm-10 -->
+    <div id="app">
+        <div class="container">
+            <h1> Willkommen zur Schätz-App</h1>
+            <br>
+            <!--<div class="progress" style="height: 50px">-->
+            <progress-bar v-for="size in sizes" :key="size.name" :name="size.name" :progress="size.progress" :color="size.color"></progress-bar>
+            <!--</div>-->
+            <reveal-button v-bind:users-connected="usersConnected" v-bind:users-voted="usersVoted"></reveal-button>
+            <ul class="users list-group">
+                <li class="list-group-item active" style="margin-top: 20px;">Connected Users:</li>
+                <user v-for="user in users" :key="user.name" :name="user.name" :emoji="user.emoji" :value="user.value" :voted="user.voted"
+                    :show-votes="showVotes"></user>
         </div>
-        <!-- end row -->
-        <div class="space-200"></div>
+
+        <modal state="open" :tickets="tickets" :base-url="baseUrl" :sizes="sizes" :room-code="roomCode"></modal>
+    </div>
     </div>
 </body>
 
-</html>
+
+<script type='text/javascript'>
+    Vue.config.devtools = true;
+    var socket = io();
+
+    socket.on('user connected', function (user) {
+        app.usersConnected++;
+        Vue.set(app.users, user.name, { name: user.name, voted: false, value: "" });
+        socket.emit("user can vote");
+    })
+
+    socket.on('user voted', function (vote) {
+        Vue.set(app.users, vote.user.name, { name: vote.user.name, voted: true, value: vote.card_value });
+        app.usersVoted++;
+    })
+
+    var app;
+    window.onload = function () {
+        app = new Vue({
+            el: '#app',
+            data: {
+                roomCode: '12345',
+                settings: {},
+                progress: 25,
+                users: {},
+                showVotes: false,
+                usersConnected: 0,
+                usersVoted: 0,
+                sizes: {},
+                tickets: [
+                    "5858",
+                    "5625",
+                    "1337"
+                ],
+                baseUrl: [
+                    "https://issuetracking.bsh-sdd.com/browse/HCCDR-"
+                ]
+            }
+        })
+        app.$on('joinRoom', function (settings) {
+            this.settings = settings;
+            Vue.set(app.sizes, "Training", { name: "Training", color: colors.navy, progress: 0 });
+            Vue.set(app.sizes, "Amateur", { name: "Amateur", color: colors.teal, progress: 0 });
+            Vue.set(app.sizes, "Semi-Pro", { name: "Semi-Pro", color: colors.maroon, progress: 0 });
+            Vue.set(app.sizes, "Pro", { name: "Pro", color: colors.yellow, progress: 0 });
+            Vue.set(app.sizes, "World-Class", { name: "World-Class", color: colors.orange, progress: 0 });
+            Vue.set(app.sizes, "Legendary", { name: "Legendary", color: colors.red, progress: 0 });
+            socket.emit('room chef', settings.roomCode);
+        })
+
+        app.$on('revealVotes', function () {
+            Object.keys(app.users).forEach(function (key) {
+                var user = app.users[key];
+                var currentProgress = app.sizes[user.value].progress;
+                var currentColor = app.sizes[user.value].color;
+
+                app.sizes[user.value].progress++;
+            });
+
+            Object.keys(app.sizes).forEach(function (key) {
+                var size = app.sizes[key];
+                if(size.progress > 0) {
+                    var percent = (size.progress/(Object.keys(app.users).length)) * 100;
+                    Vue.set(app.sizes, size.name, { name: size.name, color: size.color, progress: percent });
+                }
+            })
+
+            this.showVotes = true;
+        })
+
+
+    }
+    Vue.component('modal', {
+        template: '#modal-template',
+        data: function () {
+            return {
+                settings: {
+                    baseUrl: this.baseUrl,
+                    tickets: this.tickets,
+                    roomCode: this.roomCode
+                }
+            }
+        },
+        props: ['baseUrl', 'tickets', 'sizes', 'roomCode'],
+        methods: {
+            updateRoomCode: function (value) {
+                this.settings.roomCode = value;
+            },
+            show: function () {
+                $('#myModal').modal('show');
+            },
+            joinRoom: function () {
+                app.$emit('joinRoom', this.settings)
+            }
+        },
+        mounted() {
+            this.show();
+        }
+    })
+
+    Vue.component('progress-bar', {
+        template: '#progress-bar-template',
+        props: ['name', 'color', 'progress'],
+    })
+
+    Vue.component('reveal-button', {
+        template: '#reveal-button-template',
+        props: ['usersConnected', 'usersVoted'],
+        methods: {
+            reveal: function () {
+                app.$emit('revealVotes');
+            }
+        }
+    })
+
+    Vue.component('user', {
+        template: '#user-template',
+        props: {
+            name: String,
+            emoji: String,
+            value: String,
+            voted: Boolean,
+            showVotes: Boolean
+        }
+    })
+</script>
+
+<script type="text/x-template" id="progress-bar-template">
+    <div v-if="progress > 0" class="progress" style="height: 50px">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" v-bind:style="{'width': progress + '%', 'background-color': color}">
+            <div>{{ name }} - {{ progress }}%</div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-template" id="user-template">
+    <li class="list-group-item">
+        {{ emoji }} {{ name }} 
+        
+        <template v-if="voted">
+            <span><i class="fas fa-check-circle float-right" style="color: green;"></i></span>
+        </template>
+        <template v-if="!voted">
+            <span><i class="fas fa-times-circle float-right" style="color: red;"></i></span>
+        </template>
+        <em v-if="showVotes" class="float-right pr-2">
+            {{ value }}
+        </em>
+    </li>
+</script>
+
+<script type="text/x-template" id="reveal-button-template">
+
+    <button v-if="usersConnected > 0 && usersVoted > 0 && usersConnected == usersVoted" v-on:click="reveal" type="button" class="btn btn-success mx-auto">Reveal</button>
+
+</script>
+
+<script type="text/x-template" id="ticket-template">
+    <li class="list-group-item">
+        <a v-bind:href="baseUrl + ticket">
+    </li>
+</script>
+
+<script type="text/x-template" id="modal-template">
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Room Settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" role="form" id="settingsForm">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="inputUrl">Room Code</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="inputUrl" placeholder="Room Code" v-bind:value="roomCode" v-on:blur="updateRoomCode($event.target.value)"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="inputUrl">Base-Url</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="inputUrl" placeholder="Base-Url (for tickets)" v-bind:value="baseUrl" />
+                        </div>
+                    </div>
+                    <div class=" form-group ">
+                        <label class="col-sm-2 control-label " for="inputTickets ">Tickets</label>
+                        <div class="col-sm-10 ">
+                            <input type="text " class="form-control " id="inputTickets " placeholder="Tickets (comma-separated)" v-bind:value="tickets" />
+                        </div>
+                    </div>
+                    <!--<div class="form-group ">
+                        <label class="col-sm-2 control-label " for="inputSizes ">Sizes</label>
+                        <div class="col-sm-10 ">
+                            <input type="text " class="form-control " id="inputSizes " placeholder="Ticket Sizes (comma-separated) " v-bind:value="sizes"/>
+                        </div>
+                    </div> -->
+                </form>
+            </div>
+            <div class="modal-footer ">
+                <button type="button" class="btn btn-success" data-dismiss="modal" v-on:click="joinRoom">Join Room</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</script>
