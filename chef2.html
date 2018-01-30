@@ -18,25 +18,47 @@
     <script src="js/vue.js"></script>
     <script src="js/colors.js"></script>
     <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+    <script src="https://unpkg.com/vuex@2.0.0"></script>
     <title>Schätz-App</title>
 </head>
 
 <body>
     <div id="app">
         <div class="container">
-            <h1> Willkommen zur Schätz-App</h1>
+            <h1> Willkommen zur Schätz-App</h1> {{ state }}
             <br>
             <!--<div class="progress" style="height: 50px">-->
-            <progress-bar v-for="size in sizes" :key="size.name" :name="size.name" :progress="size.progress" :color="size.color"></progress-bar>
             <!--</div>-->
-            <reveal-button v-bind:users-connected="usersConnected" v-bind:users-voted="usersVoted"></reveal-button>
-            <ul class="users list-group">
-                <li class="list-group-item active" style="margin-top: 20px;">Connected Users:</li>
-                <user v-for="user in users" :key="user.name" :name="user.name" :emoji="user.emoji" :value="user.value" :voted="user.voted"
-                    :show-votes="showVotes"></user>
+            <div class="row">
+                <div class="cards col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <progress-bar v-for="size in sizes" :key="size.name" :name="size.name" :progress="size.progress" :color="size.color" :state="state"></progress-bar>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <ul class="users list-group  col-md-6">
+                    <li class="list-group-item active" style="margin-top: 20px;">Connected Users:
+                        <reveal-button v-bind:users-connected="usersConnected" v-bind:users-voted="usersVoted"></reveal-button>
+                    </li>
+                    <user v-for="user in users" :key="user.name" :name="user.name" :emoji="user.emoji" :value="user.value" :voted="user.voted"
+                        :show-votes="showVotes"></user>
+                </ul>
+                <ul class="tickets list-group col-md-6">
+                    <li class="list-group-item active" style="margin-top: 20px;">Tickets:
+                        <next-button></next-button>
+                        <reschaetz-button></reschaetz-button>
+                    </li>
+                    <ticket v-for="ticket in this.store.state.tickets" :key="ticket.id" :id="ticket.id" :vote="ticket.vote" :result="ticket.result"
+                        :active-ticket="activeTicket" :base-url="baseUrl"></ticket>
+                </ul>
+            </div>
+
         </div>
 
-        <modal state="open" :tickets="tickets" :base-url="baseUrl" :sizes="sizes" :room-code="roomCode"></modal>
+        <modal state="open" :base-url="baseUrl" :sizes="sizes" :room-code="roomCode"></modal>
     </div>
     </div>
 </body>
@@ -50,11 +72,61 @@
         app.usersConnected++;
         Vue.set(app.users, user.name, { name: user.name, voted: false, value: "" });
         socket.emit("user can vote");
+        store.commit("userConnected");
     })
 
     socket.on('user voted', function (vote) {
         Vue.set(app.users, vote.user.name, { name: vote.user.name, voted: true, value: vote.card_value });
-        app.usersVoted++;
+        store.commit("userVoted");
+        if (store.state.usersVoted > 0 && store.state.usersConnected > 0 && store.state.usersVoted === store.state.usersConnected) {
+            store.commit("setAppState", "can_reveal");
+        }
+    })
+
+    const store = new Vuex.Store({
+        state: {
+            count: 0,
+            appState: "setup",
+            activeTicketIndex: 0,
+            activeTicket: "5858",
+            usersConnected: 0,
+            usersVoted: 0,
+            tickets: [
+                { id: "5858", vote: 0, result: "" },
+                { id: "5625", vote: 0, result: "" },
+                { id: "1337", vote: 0, result: "" }
+            ],
+        },
+        mutations: {
+            increment(state) {
+                state.count++;
+            },
+            setAppState(state, appState) {
+                state.appState = appState;
+            },
+            nextTicket(state) {
+                state.activeTicketIndex++;
+                state.activeTicket = state.tickets[state.activeTicketIndex]
+            },
+            userConnected(state) {
+                state.usersConnected++;
+            },
+            userVoted(state) {
+                state.usersVoted++;
+            },
+            resetVotes(state) {
+                state.usersVoted = 0;
+            },
+            setTickets(state, tickets) {
+                state.tickets = tickets;
+            },
+            setTicketResult(state, result) {
+                var index = state.tickets.findIndex(function (element) {
+                    return element.id === state.activeTicket;
+                });
+                state.tickets[index].result = result;
+            }
+        }
     })
 
     var app;
@@ -62,6 +134,7 @@
         app = new Vue({
             el: '#app',
             data: {
+                store,
                 roomCode: '12345',
                 settings: {},
                 progress: 25,
@@ -71,13 +144,32 @@
                 usersVoted: 0,
                 sizes: {},
                 tickets: [
-                    "5858",
-                    "5625",
-                    "1337"
+                    { id: "5858", vote: 0, result: "" },
+                    { id: "5625", vote: 0, result: "" },
+                    { id: "1337", vote: 0, result: "" }
                 ],
-                baseUrl: [
-                    "https://issuetracking.bsh-sdd.com/browse/HCCDR-"
-                ]
+                activeTicket: "5858",
+                baseUrl: "https://issuetracking.bsh-sdd.com/browse/HCCDR-"
+            },
+            computed: {
+                state: function () {
+                    if (this.store.state.appState === "reset") {
+                        Object.keys(app.sizes).forEach(function (key) {
+                            var size = app.sizes[key];
+                            Vue.set(app.sizes, size.name, { name: size.name, color: size.color, progress: 0 });
+                        })
+
+                        Object.keys(app.users).forEach(function (key) {
+                            var user = app.users[key];
+                            Vue.set(app.users, user.name, { name: user.name, voted: false, value: "" });
+                        });
+
+                        socket.emit('card reset');
+                        this.store.commit("resetVotes");
+                        this.store.commit("setAppState", "join");
+                    }
+                    return this.store.state.appState;
+                }
             }
         })
         app.$on('joinRoom', function (settings) {
@@ -100,18 +192,22 @@
                 app.sizes[user.value].progress++;
             });
 
+            let result = ""
+            let maxProgress = -1;
             Object.keys(app.sizes).forEach(function (key) {
-                var size = app.sizes[key];
-                if(size.progress > 0) {
-                    var percent = (size.progress/(Object.keys(app.users).length)) * 100;
+                let size = app.sizes[key];
+                if (size.progress > 0) {
+                    if (size.progress >= maxProgress) {
+                        maxProgress = size.progress;
+                        result = size.name;
+                    }
+                    var percent = (size.progress / (Object.keys(app.users).length)) * 100;
                     Vue.set(app.sizes, size.name, { name: size.name, color: size.color, progress: percent });
                 }
             })
 
-            this.showVotes = true;
+            this.store.commit("setTicketResult", result);
         })
-
-
     }
     Vue.component('modal', {
         template: '#modal-template',
@@ -124,7 +220,8 @@
                 }
             }
         },
-        props: ['baseUrl', 'tickets', 'sizes', 'roomCode'],
+        store,
+        props: ['baseUrl', 'sizes', 'roomCode'],
         methods: {
             updateRoomCode: function (value) {
                 this.settings.roomCode = value;
@@ -134,30 +231,84 @@
             },
             joinRoom: function () {
                 app.$emit('joinRoom', this.settings)
+                this.$store.commit('setAppState', "join")
+            },
+            updateTickets: function (value) {
+                let values = value.split(",");
+                let tickets = [];
+                values.forEach((value) => {
+                    tickets.push({ id: value, vote: 0 });
+                })
+                this.$store.commit('setTickets', tickets);
+            }
+        },
+        computed: {
+            ticketString: function () {
+                if (this.$store.state.tickets) {
+                    let tickets = this.$store.state.tickets;
+                    return tickets.map((ticket) => { return ticket.id; }).join(',');
+                } else {
+                    return "";
+                }
+
             }
         },
         mounted() {
-            this.show();
+            if (this.$store.state.appState === "setup") {
+                this.show();
+            }
         }
     })
 
     Vue.component('progress-bar', {
         template: '#progress-bar-template',
-        props: ['name', 'color', 'progress'],
+        store,
+        props: ['name', 'color', 'progress', 'state'],
+        methods: {
+            reset: function () {
+                this.progress = 0;
+            }
+        }
     })
 
     Vue.component('reveal-button', {
         template: '#reveal-button-template',
+        store,
         props: ['usersConnected', 'usersVoted'],
         methods: {
             reveal: function () {
-                app.$emit('revealVotes');
+                if (this.enabled) {
+                    this.$store.commit('setAppState', "revealed")
+                    app.$emit('revealVotes');
+                }
+            }
+        },
+        computed: {
+            enabled: function () {
+                if (this.$store.state.appState === "can_reveal") return true;
+            }
+        }
+    })
+
+    Vue.component('next-button', {
+        template: '#next-button-template',
+        store,
+        methods: {
+            next: function () {
+                this.$store.commit('setAppState', "reset")
+                this.$store.commit('nextTicket')
+            }
+        },
+        computed: {
+            enabled: function () {
+                if (this.$store.state.appState === "revealed") return true;
             }
         }
     })
 
     Vue.component('user', {
         template: '#user-template',
+        store,
         props: {
             name: String,
             emoji: String,
@@ -166,14 +317,42 @@
             showVotes: Boolean
         }
     })
+
+    Vue.component('ticket', {
+        template: '#ticket-template',
+        store,
+        props: ['baseUrl', 'id', 'vote', 'activeTicket', 'result'],
+        computed: {
+            url: function () {
+                return this.baseUrl + this.id
+            },
+            isActive: function () {
+                return this.$store.state.activeTicket == this.id
+            }
+        }
+    })
+</script>
+
+<script type="text/x-template" id="ticket-template">
+    <li class="list-group-item" v-bind:class="{ 'bg-aqua': isActive }">
+        <a v-bind:href='url'>HCCDR-{{ id }} <span v-if='result !== ""' class="badge badge-secondary float-right">{{ result }}</span></a>
+    </li>
 </script>
 
 <script type="text/x-template" id="progress-bar-template">
-    <div v-if="progress > 0" class="progress" style="height: 50px">
+    <!--v-if='this.$store.state.appState === "revealed"'-->
+    <div class="alert alert-muted">
+        <div class="skill-name">{{ name }}  {{ progress }}%</div> 
+         <div class="progress progress-striped active progress-adjust">
+    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" v-bind:style="{'width': progress + '%', 'background-color': color}">
+</div>
+</div>
+     </div>
+    <!--<div v-if="progress > 0" class="progress" style="height: 50px">
         <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" v-bind:style="{'width': progress + '%', 'background-color': color}">
             <div>{{ name }} - {{ progress }}%</div>
         </div>
-    </div>
+    </div>-->
 </script>
 
 <script type="text/x-template" id="user-template">
@@ -186,22 +365,18 @@
         <template v-if="!voted">
             <span><i class="fas fa-times-circle float-right" style="color: red;"></i></span>
         </template>
-        <em v-if="showVotes" class="float-right pr-2">
-            {{ value }}
+        <em v-if='this.$store.state.appState === "revealed"' class="float-right pr-2">
+            <span class="badge badge-secondary">{{ value }}</span>
         </em>
     </li>
 </script>
 
 <script type="text/x-template" id="reveal-button-template">
-
-    <button v-if="usersConnected > 0 && usersVoted > 0 && usersConnected == usersVoted" v-on:click="reveal" type="button" class="btn btn-success mx-auto">Reveal</button>
-
+    <button v-on:click="reveal" type="button" class="btn btn-success float-right" v-bind:class="{ 'disabled': !enabled }">Reveal</button>
 </script>
 
-<script type="text/x-template" id="ticket-template">
-    <li class="list-group-item">
-        <a v-bind:href="baseUrl + ticket">
-    </li>
+<script type="text/x-template" id="next-button-template">
+    <button v-on:click="next" type="button" class="btn btn-success float-right" v-bind:class="{ 'disabled': !enabled }">Next</button>
 </script>
 
 <script type="text/x-template" id="modal-template">
@@ -231,7 +406,7 @@
                     <div class=" form-group ">
                         <label class="col-sm-2 control-label " for="inputTickets ">Tickets</label>
                         <div class="col-sm-10 ">
-                            <input type="text " class="form-control " id="inputTickets " placeholder="Tickets (comma-separated)" v-bind:value="tickets" />
+                            <input type="text " class="form-control " id="inputTickets" placeholder="Tickets (comma-separated)" v-bind:value="ticketString" v-on:blur="updateTickets($event.target.value)"/>
                         </div>
                     </div>
                     <!--<div class="form-group ">
