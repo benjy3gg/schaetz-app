@@ -65,7 +65,7 @@
 
         </div>
 
-        <modal state="open" :base-url="baseUrl" :sizes="sizes" :room-code="roomCode"></modal>
+        <modal state="open" :base-url="baseUrl" :sizes="sizes" :room-code="roomCode" :regex="regex"></modal>
     </div>
     </div>
 </body>
@@ -112,11 +112,8 @@
             activeTicket: {},
             usersConnected: 0,
             usersVoted: 0,
-            tickets: [
-                { id: "5858", title: "Test1", vote: 0, result: "" },
-                { id: "5625", title: "Test2", vote: 0, result: "" },
-                { id: "1337", title: "Test3", vote: 0, result: "" }
-            ],
+            regex: '',
+            tickets: [],
             baseUrl: ""
         },
         mutations: {
@@ -131,6 +128,9 @@
             },
             setBaseUrl(state, baseUrl) {
                 state.baseUrl = baseUrl;
+            },
+            setRegex(state, regex) {
+                state.regex = regex;
             },
             nextTicket(state) {
                 state.activeTicketIndex++;
@@ -170,6 +170,15 @@
 
     var app;
     window.onload = function () {
+
+        if (localStorage.getItem('regex')) {
+            store.commit('setRegex', localStorage.getItem('regex'));
+        }
+
+        if (localStorage.getItem('baseUrl')) {
+            store.commit('setBaseUrl', localStorage.getItem('baseUrl'));
+        }
+
         app = new Vue({
             el: '#app',
             data: {
@@ -236,6 +245,9 @@
                 },
                 baseUrl: function () {
                     return this.store.state.baseUrl;
+                },
+                regex: function () {
+                    return this.store.state.regex;
                 }
             }
         })
@@ -279,7 +291,7 @@
     Vue.component('modal', {
         template: '#modal-template',
         store,
-        props: ['sizes', 'baseUrl', 'roomCode'],
+        props: ['sizes', 'baseUrl', 'roomCode', 'regex'],
         methods: {
             show: function () {
                 $('#myModal').modal('show');
@@ -290,17 +302,40 @@
             updateBaseUrl: function (value) {
                 this.$store.commit('setBaseUrl', value);
             },
+            updateRegex: function (value) {
+                this.$store.commit('setRegex', value);
+            },
             joinRoom: function () {
                 this.$store.commit('setBaseUrl', this.baseUrl);
                 this.$store.commit('setAppState', "join");
                 this.$store.commit('firstTicket');
             },
+            saveInLocalStorage: function () {
+                localStorage.setItem('regex', this.$store.state.regex);
+                localStorage.setItem('baseUrl', this.$store.state.baseUrl);
+            },
             updateTickets: function (value) {
-                let values = value.split(",");
+                const regex = new RegExp(this.$store.state.regex, "g");
                 let tickets = [];
+                while ((m = regex.exec(value)) !== null) {
+                    // This is necessary to avoid infinite loops with zero-width matches
+                    if (m.index === regex.lastIndex) {
+                        regex.lastIndex++;
+                    }
+
+                    tickets.push({ id: m[1], title: m[2], vote: 0 });
+                }
+                /*
                 values.forEach((value) => {
-                    tickets.push({ id: value, vote: 0 });
-                })
+                    let v = value;
+                    if (value.includes(" - ")) {
+                        let ticketData = v.split(" - ")
+                        tickets.push({ id: ticketData[0], title: ticketData[1], vote: 0 });
+                    } else {
+                        tickets.push({ id: v, title: v, vote: 0 });
+                    }
+
+                })*/
                 this.$store.commit('setTickets', tickets);
             }
         },
@@ -308,7 +343,9 @@
             ticketString: function () {
                 if (this.$store.state.tickets) {
                     let tickets = this.$store.state.tickets;
-                    return tickets.map((ticket) => { return ticket.id; }).join(',');
+                    return tickets.map((ticket) => {
+                        return `${ticket.id} ${ticket.title}`;
+                    }).join(', ');
                 } else {
                     return "";
                 }
@@ -328,6 +365,11 @@
         methods: {
             reset: function () {
                 this.progress = 0;
+            }
+        },
+        computed: {
+            trimProgress: function () {
+                return Number((this.progress).toFixed(1));
             }
         }
     })
@@ -436,14 +478,14 @@
 
 <script type="text/x-template" id="ticket-template">
     <li class="list-group-item" v-bind:class="{ 'list-group-item-primary': isActive }">
-        <a v-bind:href='url' target="_blank">{{ id }} {{ title }} <span v-if='result !== ""' class="badge badge-primary float-right">{{ result }}</span></a>
+        <a v-bind:href='url' target="_blank">{{ id }} - {{ title }} <span v-if='result !== ""' class="badge badge-primary float-right">{{ result }}</span></a>
     </li>
 </script>
 
 <script type="text/x-template" id="progress-bar-template">
     <!--v-if='this.$store.state.appState === "revealed"'-->
     <li class="list-group-item">
-        <p> {{ name }} - {{ Number((progress).toFixed(1)); }}% </p>
+        <p> {{ name }} - {{ trimProgress }}% </p>
         <div class="progress progress-striped active progress-adjust">
             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" v-bind:style="{'width': progress + '%', 'background-color': color}"></div>
         </div>
@@ -516,11 +558,18 @@
                         </div>
                     </div>
                     <div class=" form-group ">
+                            <label class="col-sm-2 control-label " for="inputRegex ">Regex</label>
+                            <div class="col-sm-10 ">
+                                <input type="text " class="form-control " id="inputRegex" placeholder="Regex (to split tickets)" v-bind:value="regex" v-on:blur="updateRegex($event.target.value)"/>
+                            </div>
+                        </div>
+                    <div class=" form-group ">
                         <label class="col-sm-2 control-label " for="inputTickets ">Tickets</label>
                         <div class="col-sm-10 ">
                             <input type="text " class="form-control " id="inputTickets" placeholder="Tickets (comma-separated)" v-bind:value="ticketString" v-on:blur="updateTickets($event.target.value)"/>
                         </div>
                     </div>
+
                     <!--<div class="form-group ">
                         <label class="col-sm-2 control-label " for="inputSizes ">Sizes</label>
                         <div class="col-sm-10 ">
@@ -530,6 +579,7 @@
                 </form>
             </div>
             <div class="modal-footer ">
+                <button type="button" class="btn btn-success" v-on:click="saveInLocalStorage">Save</button>
                 <button type="button" class="btn btn-success" data-dismiss="modal" v-on:click="joinRoom">Join Room</button>
             </div>
         </div>
