@@ -25,7 +25,7 @@
 <body>
     <div id="app">
         <div class="container">
-            <h1> Willkommen zur Schätz-App</h1> {{ state }}
+            <h1> Welcome to room: {{ roomCode }} </h1> {{ state }}
             <br>
             <!--<div class="progress" style="height: 50px">-->
             <!--</div>-->
@@ -52,7 +52,7 @@
                         <reschaetz-button></reschaetz-button>
                     </li>
                     <ticket v-for="ticket in this.store.state.tickets" :key="ticket.id" :id="ticket.id" :vote="ticket.vote" :result="ticket.result"
-                        :active-ticket="activeTicket" :base-url="baseUrl"></ticket>
+                        :active-ticket="activeTicket" :base-url="baseUrl" :title="ticket.title"></ticket>
                 </ul>
             </div>
 
@@ -87,14 +87,14 @@
         state: {
             count: 0,
             appState: "setup",
-            activeTicketIndex: 0,
-            activeTicket: "5858",
+            activeTicketIndex: -1,
+            activeTicket: {},
             usersConnected: 0,
             usersVoted: 0,
             tickets: [
-                { id: "5858", vote: 0, result: "" },
-                { id: "5625", vote: 0, result: "" },
-                { id: "1337", vote: 0, result: "" }
+                { id: "5858", title: "Test1", vote: 0, result: "" },
+                { id: "5625", title: "Test2", vote: 0, result: "" },
+                { id: "1337", title: "Test3", vote: 0, result: "" }
             ],
         },
         mutations: {
@@ -106,6 +106,14 @@
             },
             nextTicket(state) {
                 state.activeTicketIndex++;
+                if (state.activeTicketIndex >= state.tickets.length) {
+                    alert("All done!")
+                    state.appState = "done";
+                }
+                state.activeTicket = state.tickets[state.activeTicketIndex]
+            },
+            firstTicket(state) {
+                state.activeTicketIndex = 0;
                 state.activeTicket = state.tickets[state.activeTicketIndex]
             },
             userConnected(state) {
@@ -122,7 +130,7 @@
             },
             setTicketResult(state, result) {
                 var index = state.tickets.findIndex(function (element) {
-                    return element.id === state.activeTicket;
+                    return element.id === state.activeTicket.id;
                 });
                 state.tickets[index].result = result;
             }
@@ -135,7 +143,6 @@
             el: '#app',
             data: {
                 store,
-                roomCode: '12345',
                 settings: {},
                 progress: 25,
                 users: {},
@@ -143,13 +150,7 @@
                 usersConnected: 0,
                 usersVoted: 0,
                 sizes: {},
-                tickets: [
-                    { id: "5858", vote: 0, result: "" },
-                    { id: "5625", vote: 0, result: "" },
-                    { id: "1337", vote: 0, result: "" }
-                ],
-                activeTicket: "5858",
-                baseUrl: "https://issuetracking.bsh-sdd.com/browse/HCCDR-"
+                baseUrl: ""
             },
             computed: {
                 state: function () {
@@ -167,8 +168,28 @@
                         socket.emit('card reset');
                         this.store.commit("resetVotes");
                         this.store.commit("setAppState", "join");
+                        this.store.commit("nextTicket");
+                    } else if (this.store.state.appState === "reschaetz") {
+                        Object.keys(app.sizes).forEach(function (key) {
+                            var size = app.sizes[key];
+                            Vue.set(app.sizes, size.name, { name: size.name, color: size.color, progress: 0 });
+                        })
+
+                        Object.keys(app.users).forEach(function (key) {
+                            var user = app.users[key];
+                            Vue.set(app.users, user.name, { name: user.name, voted: false, value: "" });
+                        });
+
+                        socket.emit('card reset');
+                        this.store.commit("resetVotes");
+                        this.store.commit("setAppState", "join");
+                    } else if (this.store.state.appState === "done") {
+                        socket.emit('done');
                     }
                     return this.store.state.appState;
+                },
+                roomCode: function () {
+                    return this.store.state.roomCode;
                 }
             }
         })
@@ -181,6 +202,7 @@
             Vue.set(app.sizes, "World-Class", { name: "World-Class", color: colors.orange, progress: 0 });
             Vue.set(app.sizes, "Legendary", { name: "Legendary", color: colors.red, progress: 0 });
             socket.emit('room chef', settings.roomCode);
+            //this.store.commit("nextTicket");
         })
 
         app.$on('revealVotes', function () {
@@ -230,8 +252,9 @@
                 $('#myModal').modal('show');
             },
             joinRoom: function () {
-                app.$emit('joinRoom', this.settings)
-                this.$store.commit('setAppState', "join")
+                app.$emit('joinRoom', this.settings);
+                this.$store.commit('setAppState', "join");
+                this.$store.commit('firstTicket');
             },
             updateTickets: function (value) {
                 let values = value.split(",");
@@ -296,7 +319,21 @@
         methods: {
             next: function () {
                 this.$store.commit('setAppState', "reset")
-                this.$store.commit('nextTicket')
+            }
+        },
+        computed: {
+            enabled: function () {
+                if (this.$store.state.appState === "revealed") return true;
+            }
+        }
+    })
+
+    Vue.component('reschaetz-button', {
+        template: '#reschaetz-button-template',
+        store,
+        methods: {
+            next: function () {
+                this.$store.commit('setAppState', "reschaetz")
             }
         },
         computed: {
@@ -321,21 +358,21 @@
     Vue.component('ticket', {
         template: '#ticket-template',
         store,
-        props: ['baseUrl', 'id', 'vote', 'activeTicket', 'result'],
+        props: ['baseUrl', 'id', 'vote', 'activeTicket', 'result', 'title'],
         computed: {
             url: function () {
                 return this.baseUrl + this.id
             },
             isActive: function () {
-                return this.$store.state.activeTicket == this.id
+                return this.$store.state.activeTicket.id == this.id
             }
         }
     })
 </script>
 
 <script type="text/x-template" id="ticket-template">
-    <li class="list-group-item" v-bind:class="{ 'bg-aqua': isActive }">
-        <a v-bind:href='url'>HCCDR-{{ id }} <span v-if='result !== ""' class="badge badge-secondary float-right">{{ result }}</span></a>
+    <li class="list-group-item" v-bind:class="{ 'list-group-item-primary': isActive }">
+        <a v-bind:href='url'>{{ id }} {{ title }} <span v-if='result !== ""' class="badge badge-primary float-right">{{ result }}</span></a>
     </li>
 </script>
 
@@ -377,6 +414,10 @@
 
 <script type="text/x-template" id="next-button-template">
     <button v-on:click="next" type="button" class="btn btn-success float-right" v-bind:class="{ 'disabled': !enabled }">Next</button>
+</script>
+
+<script type="text/x-template" id="reschaetz-button-template">
+    <button v-on:click="next" type="button" class="btn btn-warning float-right" v-bind:class="{ 'disabled': !enabled }">Reschaetz</button>
 </script>
 
 <script type="text/x-template" id="modal-template">

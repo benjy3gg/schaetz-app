@@ -11,7 +11,7 @@ app.get("/", function (req, res) {
 });
 
 app.get("/chef", function (req, res) {
-  res.sendFile(__dirname + "/chef.html");
+  res.sendFile(__dirname + "/chef2.html");
 });
 
 app.get("/chef2", function (req, res) {
