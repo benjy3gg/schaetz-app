@@ -5,6 +5,11 @@ body {
   font-family: "Oswald", cursive;
   background-color: #e5e9ed;
 }
+
+.form-control-error {
+  border-color: red;
+}
+
 .btn:hover,
 .btn:focus,
 .btn:active {

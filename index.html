@@ -77,6 +77,19 @@
         socket.emit('room', roomCode);
       });*/
 
+      socket.on('no chef', function () {
+        document.body.append("<h1>Kein chef da</h1>")
+      })
+
+      socket.on('drop', function (roomCode) {
+        socket.emit("drop user", roomCode);
+      })
+
+      socket.on('drop', function (roomCode) {
+        $('#card-deck').empty();
+        document.body.append("<h1>Kein chef da</h1>")
+      })
+
       function drawCards(sizes) {
         $('#card-deck').empty();
         $.each(sizes, function (index, size) {

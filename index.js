@@ -1,7 +1,8 @@
 var express = require("express");
 var app = express();
 var http = require("http").Server(app);
-var io = require("socket.io")(http);
+var sio = require("socket.io")
+var io = sio(http);
 var port = process.env.PORT || 3002;
 
 app.use(express.static("public"));
@@ -37,6 +38,10 @@ io.on("connection", function (socket) {
     io.sockets.in(currentRoom).emit("user wait", user);
   });
 
+  socket.on("user done", function (roomCode) {
+    io.sockets.in(roomCode).emit("user done");
+  })
+
   socket.on("card reset", function (roomCode) {
     var currentRoom = socket.rooms[roomCode];
     console.log(currentRoom);
@@ -47,8 +52,12 @@ io.on("connection", function (socket) {
     socket.join(user.roomCode);
     //rooms[user.roomCode].users[user.name] = { user, socket };
     //rooms[user.roomCode].sockets[socket.id] = { user, socket };
-    console.log("user enters room: " + user.roomCode);
-    io.sockets.in(user.roomCode).emit("user connected", user);
+    if (rooms.indexOf(user.roomCode) >= 0) {
+      console.log("user enters room: " + user.roomCode);
+      io.sockets.in(user.roomCode).emit("user connected", user);
+    } else {
+      socket.emit("no chef");
+    }
   });
 
   socket.on("room chef", function (roomCode) {
@@ -56,7 +65,13 @@ io.on("connection", function (socket) {
     console.log("chef enters room: " + roomCode);
     rooms.push(roomCode);
     socket.join(roomCode);
+    io.sockets.in(roomCode).emit("drop", roomCode);
   });
+
+  socket.on("drop user", function (roomCode) {
+    console.log("user dropped: " + roomCode);
+    socket.leave(roomCode);
+  })
 
   socket.on("new ticket", function (msg) {
     io.sockets.in(msg.roomCode).emit("set ticket", msg.ticket);

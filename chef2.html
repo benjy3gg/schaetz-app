@@ -57,12 +57,12 @@
                     <li class="list-group-item active" style="margin-top: 20px;">Tickets:
                         <next-button></next-button>
                         <reschaetz-button></reschaetz-button>
+                        <export-button></export-button>
                     </li>
                     <ticket v-for="ticket in this.store.state.tickets" :key="ticket.id" :id="ticket.id" :vote="ticket.vote" :result="ticket.result"
                         :active-ticket="activeTicket" :base-url="store.state.baseUrl" :title="ticket.title"></ticket>
                 </ul>
             </div>
-
         </div>
 
         <modal state="open" :base-url="baseUrl" :sizes="sizes" :room-code="roomCode" :regex="regex"></modal>
@@ -137,6 +137,7 @@
                 if (state.activeTicketIndex >= state.tickets.length) {
                     alert("All done!")
                     state.appState = "done";
+                    socket.emit("user done", state.roomCode);
                 }
                 state.activeTicket = state.tickets[state.activeTicketIndex]
             },
@@ -148,7 +149,9 @@
                 state.usersConnected++;
             },
             userDisconnected(state) {
-                state.usersConnected--;
+                if (state.usersConnected > 0) {
+                    state.usersConnected--;
+                }
             },
             userVoted(state) {
                 state.usersVoted++;
@@ -187,15 +190,12 @@
                 progress: 25,
                 users: {},
                 showVotes: false,
-                usersConnected: 0,
-                usersVoted: 0,
                 sizes: {},
                 activeTicket: {},
             },
             watch: {
                 state: function (state) {
                     if (this.store.state.appState === "join") {
-                        socket.emit('room chef', this.store.state.roomCode);
                         Vue.set(app.sizes, "Training", { name: "Training", color: colors.blue, progress: 0 });
                         Vue.set(app.sizes, "Amateur", { name: "Amateur", color: colors.teal, progress: 0 });
                         Vue.set(app.sizes, "Semi-Pro", { name: "Semi-Pro", color: colors.green, progress: 0 });
@@ -248,7 +248,13 @@
                 },
                 regex: function () {
                     return this.store.state.regex;
-                }
+                },
+                usersConnected: function () {
+                    return this.store.state.usersConnected;
+                },
+                usersVoted: function () {
+                    return this.store.state.usersVoted;
+                },
             }
         })
         app.$on('joinRoom', function (settings) {
@@ -291,10 +297,16 @@
     Vue.component('modal', {
         template: '#modal-template',
         store,
+        data: function () {
+            return { error: false };
+        },
         props: ['sizes', 'baseUrl', 'roomCode', 'regex'],
         methods: {
             show: function () {
                 $('#myModal').modal('show');
+            },
+            hide: function () {
+                $('#myModal').modal('hide');
             },
             updateRoomCode: function (value) {
                 this.$store.commit('setRoomCode', value);
@@ -306,9 +318,18 @@
                 this.$store.commit('setRegex', value);
             },
             joinRoom: function () {
+                socket.emit('room chef', this.$store.state.roomCode);
                 this.$store.commit('setBaseUrl', this.baseUrl);
-                this.$store.commit('setAppState', "join");
-                this.$store.commit('firstTicket');
+                if (this.$store.state.tickets.length > 0) {
+                    this.$store.commit('setAppState', "join");
+                    this.$store.commit('firstTicket');
+                    this.error = false;
+                    this.hide();
+                } else {
+                    this.error = true;
+                    //this.$store.commit('setAppState', "setup");
+                    this.show();
+                }
             },
             saveInLocalStorage: function () {
                 localStorage.setItem('regex', this.$store.state.regex);
@@ -341,7 +362,7 @@
         },
         computed: {
             ticketString: function () {
-                if (this.$store.state.tickets) {
+                if (this.$store.state.tickets.length > 0) {
                     let tickets = this.$store.state.tickets;
                     return tickets.map((ticket) => {
                         return `${ticket.id} ${ticket.title}`;
@@ -399,6 +420,25 @@
         methods: {
             next: function () {
                 this.$store.commit('setAppState', "reset")
+            }
+        },
+        computed: {
+            enabled: function () {
+                if (this.$store.state.appState === "revealed" && this.$store.state.activeTicketIndex < $store.state.tickets.length - 1) return true;
+            }
+        }
+    })
+
+    Vue.component('export-button', {
+        template: '#export-button-template',
+        store,
+        methods: {
+            xport: function () {
+                var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.$store.state.tickets));
+                var dlAnchorElem = document.getElementById('exportAnchor');
+                dlAnchorElem.setAttribute("href", dataStr);
+                dlAnchorElem.setAttribute("download", "scene.json");
+                dlAnchorElem.click();
             }
         },
         computed: {
@@ -525,6 +565,11 @@
     <button v-on:click="reveal" type="button" class="btn btn-success float-right" v-bind:class="{ 'disabled': !enabled }">Reveal</button>
 </script>
 
+<script type="text/x-template" id="export-button-template">
+    <button id="exportBtn" v-on:click="xport" type="button" class="btn btn-success float-right">Export<a id="exportAnchor" style="display: none;"></a></button>
+    
+</script>
+
 <script type="text/x-template" id="next-button-template">
     <button v-on:click="next" type="button" class="btn btn-success float-right" v-bind:class="{ 'disabled': !enabled }">Next</button>
 </script>
@@ -563,10 +608,10 @@
                                 <input type="text " class="form-control " id="inputRegex" placeholder="Regex (to split tickets)" v-bind:value="regex" v-on:blur="updateRegex($event.target.value)"/>
                             </div>
                         </div>
-                    <div class=" form-group ">
+                    <div class=" form-group">
                         <label class="col-sm-2 control-label " for="inputTickets ">Tickets</label>
                         <div class="col-sm-10 ">
-                            <input type="text " class="form-control " id="inputTickets" placeholder="Tickets (comma-separated)" v-bind:value="ticketString" v-on:blur="updateTickets($event.target.value)"/>
+                            <input type="text " class="form-control" v-bind:class="{ 'form-control-error': error }" id="inputTickets" placeholder="Tickets (comma-separated)" v-bind:value="ticketString" v-on:blur="updateTickets($event.target.value)"/>
                         </div>
                     </div>
 
@@ -580,7 +625,7 @@
             </div>
             <div class="modal-footer ">
                 <button type="button" class="btn btn-success" v-on:click="saveInLocalStorage">Save</button>
-                <button type="button" class="btn btn-success" data-dismiss="modal" v-on:click="joinRoom">Join Room</button>
+                <button type="button" class="btn btn-success" v-on:click="joinRoom">Join Room</button>
             </div>
         </div>
     </div>
