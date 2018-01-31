@@ -13,12 +13,16 @@
   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   <link rel="stylesheet" href="css/animate.css">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/vue.js"></script>
+  <script src="js/colors.js"></script>
+  <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+  <script src="https://unpkg.com/vuex@2.0.0"></script>
   <title>Schätz-App</title>
 </head>
 
 <body>
   <div class="container">
-    <h1 class="display-3">Hallo Schätzchen:
+    <h1>Hallo Schätzchen:
       <span id="name"></span>
     </h1>
   </div>
@@ -30,19 +34,26 @@
   <script>
     $(function () {
       //$('#emoji-picker').emojiPicker();
-      
+
       var sizes = ['Training', 'Amateur', 'Semi-Pro', 'Pro', 'World-Class', 'Legendary'];
       var socket = io();
 
+      socket.on('user wait', function () {
+        $('#card-deck').empty();
+        $('#card-deck').html('<h1>Please wait</h1>');
+      });
+
+      socket.on('user can vote', function () {
+        drawCards(sizes);
+      });
+
+      socket.on('card reset', function () {
+        drawCards(sizes);
+      });
+
       var user = {};
 
-      var username = "";
-      if (!localStorage['name']) {
-        var person = prompt("Please enter your name", "Harry Potter");
-        localStorage['name'] = person;
-      } else {
-        person = localStorage['name'];
-      }
+      var person = prompt("Please enter your name", "Harry Potter");
       $('#name').html(person);
       user.name = person;
 
@@ -78,20 +89,15 @@
             $('.card-container-card-container').data('clickable', false);
             var card_value = $(this).find('.card-container-card').data("value");
             var data = { "user": user, "card_value": card_value };
-            socket.emit('user vote', data);
+            socket.emit('user send vote', data);
             $('.manual-flip:not([data-value="' + card_value + '"]').addClass('hover')
           }
         });
       }
 
-      drawCards(sizes);
-      socket.on('card reset', function () {
-        drawCards(sizes);
-      });
-
       function cardHtml(size, urlPrompt, person) {
         return `
-        <div class="col-xl-2 col-md-3 col-sm-6 animated bounceInDown card-container-card-container" data-clickable="true">
+        <div class="col-xl-2 col-md-6 col-lg-4 animated bounceInDown card-container-card-container" data-clickable="true">
           <div class="card-container-card manual-flip" data-value="${size}">
             <div class="card">
               <div class="front">

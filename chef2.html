@@ -25,34 +25,41 @@
 <body>
     <div id="app">
         <div class="container">
-            <h1> Welcome to room: {{ roomCode }} </h1> {{ state }}
+            <h1> Welcome to room: {{ roomCode }} </h1>
+            <!--<div style="display: none;">{{ state }}</div>-->
             <br>
             <!--<div class="progress" style="height: 50px">-->
             <!--</div>-->
             <div class="row">
+                <div class="col-md-12">
+
+                </div>
                 <div class="cards col-md-12">
                     <div class="card">
                         <div class="card-body">
-                            <progress-bar v-for="size in sizes" :key="size.name" :name="size.name" :progress="size.progress" :color="size.color" :state="state"></progress-bar>
+                            <user-progress-bar :progress="store.state.usersConnected/store.state.usersConnected"></user-progress-bar>
+                            <ul class="tickets list-group list-group-flush">
+                                <progress-bar v-for="size in sizes" :key="size.name" :name="size.name" :progress="size.progress" :color="size.color" :state="state"></progress-bar>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row">
-                <ul class="users list-group  col-md-6">
+                <ul class="users list-group list-group-flush col-md-6">
                     <li class="list-group-item active" style="margin-top: 20px;">Connected Users:
                         <reveal-button v-bind:users-connected="usersConnected" v-bind:users-voted="usersVoted"></reveal-button>
                     </li>
                     <user v-for="user in users" :key="user.name" :name="user.name" :emoji="user.emoji" :value="user.value" :voted="user.voted"
                         :show-votes="showVotes"></user>
                 </ul>
-                <ul class="tickets list-group col-md-6">
+                <ul class="tickets list-group list-group-flush col-md-6">
                     <li class="list-group-item active" style="margin-top: 20px;">Tickets:
                         <next-button></next-button>
                         <reschaetz-button></reschaetz-button>
                     </li>
                     <ticket v-for="ticket in this.store.state.tickets" :key="ticket.id" :id="ticket.id" :vote="ticket.vote" :result="ticket.result"
-                        :active-ticket="activeTicket" :base-url="baseUrl" :title="ticket.title"></ticket>
+                        :active-ticket="activeTicket" :base-url="store.state.baseUrl" :title="ticket.title"></ticket>
                 </ul>
             </div>
 
@@ -69,10 +76,19 @@
     var socket = io();
 
     socket.on('user connected', function (user) {
-        app.usersConnected++;
-        Vue.set(app.users, user.name, { name: user.name, voted: false, value: "" });
-        socket.emit("user can vote");
         store.commit("userConnected");
+        Vue.set(app.users, user.name, { name: user.name, voted: false, value: "" });
+        if (store.state.appState === "join") {
+            socket.emit("user can vote", user);
+        } else {
+            socket.emit("user wait", user);
+        }
+    })
+
+    socket.on('user disconnected', function (roomCode) {
+        if (store.state.roomCode === roomCode) {
+            store.commit("userDisconnected");
+        }
     })
 
     socket.on('user voted', function (vote) {
@@ -83,9 +99,14 @@
         }
     })
 
+    window.onbeforeunload = function () {
+        return 'Are you sure you want to leave?';
+    };
+
     const store = new Vuex.Store({
         state: {
             count: 0,
+            roomCode: "12345",
             appState: "setup",
             activeTicketIndex: -1,
             activeTicket: {},
@@ -96,6 +117,7 @@
                 { id: "5625", title: "Test2", vote: 0, result: "" },
                 { id: "1337", title: "Test3", vote: 0, result: "" }
             ],
+            baseUrl: ""
         },
         mutations: {
             increment(state) {
@@ -103,6 +125,12 @@
             },
             setAppState(state, appState) {
                 state.appState = appState;
+            },
+            setRoomCode(state, roomCode) {
+                state.roomCode = roomCode;
+            },
+            setBaseUrl(state, baseUrl) {
+                state.baseUrl = baseUrl;
             },
             nextTicket(state) {
                 state.activeTicketIndex++;
@@ -118,6 +146,9 @@
             },
             userConnected(state) {
                 state.usersConnected++;
+            },
+            userDisconnected(state) {
+                state.usersConnected--;
             },
             userVoted(state) {
                 state.usersVoted++;
@@ -143,7 +174,6 @@
             el: '#app',
             data: {
                 store,
-                roomCode: "",
                 settings: {},
                 progress: 25,
                 users: {},
@@ -151,12 +181,19 @@
                 usersConnected: 0,
                 usersVoted: 0,
                 sizes: {},
-                baseUrl: "",
                 activeTicket: {},
             },
-            computed: {
-                state: function () {
-                    if (this.store.state.appState === "reset") {
+            watch: {
+                state: function (state) {
+                    if (this.store.state.appState === "join") {
+                        socket.emit('room chef', this.store.state.roomCode);
+                        Vue.set(app.sizes, "Training", { name: "Training", color: colors.blue, progress: 0 });
+                        Vue.set(app.sizes, "Amateur", { name: "Amateur", color: colors.teal, progress: 0 });
+                        Vue.set(app.sizes, "Semi-Pro", { name: "Semi-Pro", color: colors.green, progress: 0 });
+                        Vue.set(app.sizes, "Pro", { name: "Pro", color: colors.yellow, progress: 0 });
+                        Vue.set(app.sizes, "World-Class", { name: "World-Class", color: colors.orange, progress: 0 });
+                        Vue.set(app.sizes, "Legendary", { name: "Legendary", color: colors.red, progress: 0 });
+                    } else if (this.store.state.appState === "reset") {
                         Object.keys(app.sizes).forEach(function (key) {
                             var size = app.sizes[key];
                             Vue.set(app.sizes, size.name, { name: size.name, color: size.color, progress: 0 });
@@ -167,7 +204,7 @@
                             Vue.set(app.users, user.name, { name: user.name, voted: false, value: "" });
                         });
 
-                        socket.emit('card reset');
+                        socket.emit('card reset', this.store.state.roomCode);
                         this.store.commit("resetVotes");
                         this.store.commit("setAppState", "join");
                         this.store.commit("nextTicket");
@@ -182,16 +219,23 @@
                             Vue.set(app.users, user.name, { name: user.name, voted: false, value: "" });
                         });
 
-                        socket.emit('card reset');
+                        socket.emit('card reset', this.store.state.roomCode);
                         this.store.commit("resetVotes");
                         this.store.commit("setAppState", "join");
                     } else if (this.store.state.appState === "done") {
                         socket.emit('done');
                     }
+                }
+            },
+            computed: {
+                state: function () {
                     return this.store.state.appState;
                 },
                 roomCode: function () {
                     return this.store.state.roomCode;
+                },
+                baseUrl: function () {
+                    return this.store.state.baseUrl;
                 }
             }
         })
@@ -203,7 +247,6 @@
             Vue.set(app.sizes, "Pro", { name: "Pro", color: colors.yellow, progress: 0 });
             Vue.set(app.sizes, "World-Class", { name: "World-Class", color: colors.orange, progress: 0 });
             Vue.set(app.sizes, "Legendary", { name: "Legendary", color: colors.red, progress: 0 });
-            socket.emit('room chef', settings.roomCode);
             //this.store.commit("nextTicket");
         })
 
@@ -235,26 +278,20 @@
     }
     Vue.component('modal', {
         template: '#modal-template',
-        data: function () {
-            return {
-                settings: {
-                    baseUrl: this.baseUrl,
-                    tickets: this.tickets,
-                    roomCode: this.roomCode
-                }
-            }
-        },
         store,
-        props: ['baseUrl', 'sizes', 'roomCode'],
+        props: ['sizes', 'baseUrl', 'roomCode'],
         methods: {
-            updateRoomCode: function (value) {
-                this.settings.roomCode = value;
-            },
             show: function () {
                 $('#myModal').modal('show');
             },
+            updateRoomCode: function (value) {
+                this.$store.commit('setRoomCode', value);
+            },
+            updateBaseUrl: function (value) {
+                this.$store.commit('setBaseUrl', value);
+            },
             joinRoom: function () {
-                app.$emit('joinRoom', this.settings);
+                this.$store.commit('setBaseUrl', this.baseUrl);
                 this.$store.commit('setAppState', "join");
                 this.$store.commit('firstTicket');
             },
@@ -275,7 +312,6 @@
                 } else {
                     return "";
                 }
-
             }
         },
         mounted() {
@@ -357,6 +393,32 @@
         }
     })
 
+    Vue.component('user-progress-bar', {
+        template: '#user-progress-bar-template',
+        store,
+        data: function () {
+            return {
+                color: "grey",
+                text: "Waiting"
+            }
+        },
+        props: ['progress'],
+        computed: {
+            progressValue: function () {
+                if (this.$store.state.usersVoted === 0) {
+                    this.color = "grey";
+                    this.text = "Waiting";
+                    return 100;
+                } else {
+                    this.color = "green";
+                    this.text = "Users Voted";
+                    return (this.$store.state.usersVoted / this.$store.state.usersConnected) * 100;
+                }
+
+            }
+        }
+    })
+
     Vue.component('ticket', {
         template: '#ticket-template',
         store,
@@ -374,24 +436,31 @@
 
 <script type="text/x-template" id="ticket-template">
     <li class="list-group-item" v-bind:class="{ 'list-group-item-primary': isActive }">
-        <a v-bind:href='url'>{{ id }} {{ title }} <span v-if='result !== ""' class="badge badge-primary float-right">{{ result }}</span></a>
+        <a v-bind:href='url' target="_blank">{{ id }} {{ title }} <span v-if='result !== ""' class="badge badge-primary float-right">{{ result }}</span></a>
     </li>
 </script>
 
 <script type="text/x-template" id="progress-bar-template">
     <!--v-if='this.$store.state.appState === "revealed"'-->
-    <div class="alert alert-muted">
-        <div class="skill-name">{{ name }}  {{ progress }}%</div> 
-         <div class="progress progress-striped active progress-adjust">
-    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" v-bind:style="{'width': progress + '%', 'background-color': color}">
-</div>
-</div>
-     </div>
+    <li class="list-group-item">
+        <p> {{ name }} - {{ Number((progress).toFixed(1)); }}% </p>
+        <div class="progress progress-striped active progress-adjust">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" v-bind:style="{'width': progress + '%', 'background-color': color}"></div>
+        </div>
+    </li>
     <!--<div v-if="progress > 0" class="progress" style="height: 50px">
         <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" v-bind:style="{'width': progress + '%', 'background-color': color}">
             <div>{{ name }} - {{ progress }}%</div>
         </div>
     </div>-->
+</script>
+
+<script type="text/x-template" id="user-progress-bar-template">
+    <div class="p-4">
+        <div class="progress progress-striped active progress-adjust">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" v-bind:style="{'width': progressValue + '%', 'background-color': color}">{{text}}</div>
+        </div>
+    </div>
 </script>
 
 <script type="text/x-template" id="user-template">
@@ -443,7 +512,7 @@
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="inputUrl">Base-Url</label>
                         <div class="col-sm-10">
-                            <input type="text" class="form-control" id="inputUrl" placeholder="Base-Url (for tickets)" v-bind:value="baseUrl" />
+                            <input type="text" class="form-control" id="inputUrl" placeholder="Base-Url (for tickets)" v-bind:value="baseUrl" v-on:blur="updateBaseUrl($event.target.value)"/>
                         </div>
                     </div>
                     <div class=" form-group ">
