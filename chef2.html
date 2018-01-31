@@ -143,6 +143,7 @@
             el: '#app',
             data: {
                 store,
+                roomCode: "",
                 settings: {},
                 progress: 25,
                 users: {},
@@ -150,7 +151,8 @@
                 usersConnected: 0,
                 usersVoted: 0,
                 sizes: {},
-                baseUrl: ""
+                baseUrl: "",
+                activeTicket: {},
             },
             computed: {
                 state: function () {
