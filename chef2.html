@@ -434,7 +434,7 @@
         },
         computed: {
             enabled: function () {
-                if (this.$store.state.appState === "revealed" && this.$store.state.activeTicketIndex < $store.state.tickets.length - 1) return true;
+                if (this.$store.state.appState === "revealed" && this.$store.state.activeTicketIndex < this.$store.state.tickets.length - 1) return true;
             }
         }
     })
