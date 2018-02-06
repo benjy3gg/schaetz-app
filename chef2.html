@@ -147,7 +147,7 @@
                 if (state.activeTicketIndex >= state.tickets.length) {
                     alert("All done!")
                     state.appState = "done";
-                    state.commit("addOldTickets", state.tickets);
+                    store.commit("addOldTickets", state.tickets);
                     localStorage.setItem("tickets", JSON.stringify(state.tickets));
                     socket.emit("user done", state.roomCode);
                 } else {
@@ -183,6 +183,7 @@
             },
             addOldTickets(state, oldTickets) {
                 state.oldTickets = [...state.oldTickets, ...oldTickets];
+                localStorage.setItem("oldTickets", JSON.stringify(state.oldTickets));
             },
             setOldTickets(state) {
                 state.oldTickets = JSON.parse(localStorage.getItem('oldTickets'));
