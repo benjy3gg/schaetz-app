@@ -184,7 +184,7 @@
             store.commit('setBaseUrl', localStorage.getItem('baseUrl'));
         }
 
-        if (localStorate.getItem('tickets')) {
+        if (localStorage.getItem('tickets')) {
             store.commit('setTickets', JSON.parse(localStorage.getItem('tickets')));
         }
 
