@@ -137,9 +137,11 @@
                 if (state.activeTicketIndex >= state.tickets.length) {
                     alert("All done!")
                     state.appState = "done";
+                    localStorage.setItem("tickets", state.tickets);
                     socket.emit("user done", state.roomCode);
+                } else {
+                    state.activeTicket = state.tickets[state.activeTicketIndex]
                 }
-                state.activeTicket = state.tickets[state.activeTicketIndex]
             },
             firstTicket(state) {
                 state.activeTicketIndex = 0;
@@ -180,6 +182,10 @@
 
         if (localStorage.getItem('baseUrl')) {
             store.commit('setBaseUrl', localStorage.getItem('baseUrl'));
+        }
+
+        if (localStorate.getItem('tickets')) {
+            store.commit('setTickets', JSON.parse(localStorage.getItem('tickets')));
         }
 
         app = new Vue({
