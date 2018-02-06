@@ -137,7 +137,7 @@
                 if (state.activeTicketIndex >= state.tickets.length) {
                     alert("All done!")
                     state.appState = "done";
-                    localStorage.setItem("tickets", JSON.stringify(localStorage.tickets));
+                    localStorage.setItem("tickets", JSON.stringify(state.tickets));
                     socket.emit("user done", state.roomCode);
                 } else {
                     state.activeTicket = state.tickets[state.activeTicketIndex]
