@@ -45,6 +45,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="row">
                 <ul class="users list-group list-group-flush col-md-6">
                     <li class="list-group-item active" style="margin-top: 20px;">Connected Users:
@@ -60,6 +61,14 @@
                         <export-button></export-button>
                     </li>
                     <ticket v-for="ticket in this.store.state.tickets" :key="ticket.id" :id="ticket.id" :vote="ticket.vote" :result="ticket.result"
+                        :active-ticket="activeTicket" :base-url="store.state.baseUrl" :title="ticket.title"></ticket>
+                </ul>
+            </div>
+
+            <div class="row">
+                <ul class="old-tickets list-group list-group-flush col-md-12">
+                    <li class="list-group-item active" style="margin-top: 20px;">Old Tickets:</li>
+                    <ticket v-for="ticket in this.store.state.oldTickets" :key="ticket.id" :id="ticket.id" :vote="ticket.vote" :result="ticket.result"
                         :active-ticket="activeTicket" :base-url="store.state.baseUrl" :title="ticket.title"></ticket>
                 </ul>
             </div>
@@ -114,7 +123,8 @@
             usersVoted: 0,
             regex: '',
             tickets: [],
-            baseUrl: ""
+            baseUrl: "",
+            oldTickets: []
         },
         mutations: {
             increment(state) {
@@ -137,6 +147,7 @@
                 if (state.activeTicketIndex >= state.tickets.length) {
                     alert("All done!")
                     state.appState = "done";
+                    state.commit("addOldTickets", state.tickets);
                     localStorage.setItem("tickets", JSON.stringify(state.tickets));
                     socket.emit("user done", state.roomCode);
                 } else {
@@ -169,6 +180,12 @@
                     return element.id === state.activeTicket.id;
                 });
                 state.tickets[index].result = result;
+            },
+            addOldTickets(state, oldTickets) {
+                state.oldTickets = [...state.oldTickets, ...oldTickets];
+            },
+            setOldTickets(state) {
+                state.oldTickets = JSON.parse(localStorage.getItem('oldTickets'));
             }
         }
     })
@@ -186,6 +203,10 @@
 
         if (localStorage.getItem('tickets')) {
             store.commit('setTickets', JSON.parse(localStorage.getItem('tickets')));
+        }
+
+        if (localStorage.getItem('oldTickets')) {
+            store.commit('setOldTickets', JSON.parse(localStorage.getItem('oldTickets')));
         }
 
         app = new Vue({

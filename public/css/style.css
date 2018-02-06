@@ -6,6 +6,10 @@ body {
   background-color: #e5e9ed;
 }
 
+.old-tickets {
+  padding-left: 15px;
+}
+
 .form-control-error {
   border-color: red;
 }
