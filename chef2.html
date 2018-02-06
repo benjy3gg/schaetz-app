@@ -324,11 +324,9 @@
                     this.$store.commit('setAppState', "join");
                     this.$store.commit('firstTicket');
                     this.error = false;
-                    this.hide();
                 } else {
                     this.error = true;
-                    //this.$store.commit('setAppState', "setup");
-                    this.show();
+                    this.$store.commit('setAppState', "setup");
                 }
             },
             saveInLocalStorage: function () {
@@ -369,6 +367,18 @@
                     }).join(', ');
                 } else {
                     return "";
+                }
+            },
+            state: function () {
+                return this.$store.state.appState;
+            }
+        },
+        watch: {
+            state: function (state) {
+                if (state === "setup") {
+                    this.show();
+                } else if (state === "join") {
+                    this.hide();
                 }
             }
         },
@@ -579,7 +589,7 @@
 </script>
 
 <script type="text/x-template" id="modal-template">
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
