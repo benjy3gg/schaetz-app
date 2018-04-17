@@ -204,6 +204,7 @@
             Vue.set(app.sizes, "21", { name: "21", color: colors.purple, progress: 0 });
             Vue.set(app.sizes, "34", { name: "34", color: colors.black, progress: 0 });
             Vue.set(app.sizes, "55", { name: "55", color: colors.grey, progress: 0 });
+            Vue.set(app.sizes, "?", { name: "?", color: colors.grey, progress: 0 });
             socket.emit('room chef', settings.roomCode);
             //this.store.commit("nextTicket");
         })

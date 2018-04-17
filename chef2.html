@@ -233,6 +233,7 @@
                         Vue.set(app.sizes, "21", { name: "21", color: colors.purple, progress: 0 });
                         Vue.set(app.sizes, "34", { name: "34", color: colors.black, progress: 0 });
                         Vue.set(app.sizes, "55", { name: "55", color: colors.grey, progress: 0 });
+                        Vue.set(app.sizes, "?", { name: "?", color: colors.grey, progress: 0 });
                     } else if (this.store.state.appState === "reset") {
                         Object.keys(app.sizes).forEach(function (key) {
                             var size = app.sizes[key];
