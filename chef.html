@@ -195,12 +195,15 @@
         })
         app.$on('joinRoom', function (settings) {
             this.settings = settings;
-            Vue.set(app.sizes, "Training", { name: "Training", color: colors.navy, progress: 0 });
-            Vue.set(app.sizes, "Amateur", { name: "Amateur", color: colors.teal, progress: 0 });
-            Vue.set(app.sizes, "Semi-Pro", { name: "Semi-Pro", color: colors.maroon, progress: 0 });
-            Vue.set(app.sizes, "Pro", { name: "Pro", color: colors.yellow, progress: 0 });
-            Vue.set(app.sizes, "World-Class", { name: "World-Class", color: colors.orange, progress: 0 });
-            Vue.set(app.sizes, "Legendary", { name: "Legendary", color: colors.red, progress: 0 });
+            Vue.set(app.sizes, "1", { name: "1", color: colors.blue, progress: 0 });
+            Vue.set(app.sizes, "2", { name: "2", color: colors.teal, progress: 0 });
+            Vue.set(app.sizes, "3", { name: "3", color: colors.green, progress: 0 });
+            Vue.set(app.sizes, "5", { name: "5", color: colors.yellow, progress: 0 });
+            Vue.set(app.sizes, "8", { name: "8", color: colors.orange, progress: 0 });
+            Vue.set(app.sizes, "13", { name: "13", color: colors.red, progress: 0 });
+            Vue.set(app.sizes, "21", { name: "21", color: colors.purple, progress: 0 });
+            Vue.set(app.sizes, "34", { name: "34", color: colors.black, progress: 0 });
+            Vue.set(app.sizes, "55", { name: "55", color: colors.grey, progress: 0 });
             socket.emit('room chef', settings.roomCode);
             //this.store.commit("nextTicket");
         })
